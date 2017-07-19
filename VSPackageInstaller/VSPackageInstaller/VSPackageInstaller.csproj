@@ -61,6 +61,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>SearchProviderResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SearchProvider\SearchResult.cs" />
+    <Compile Include="SearchProvider\SearchTask.cs" />
     <Compile Include="VSPackage.cs" />
   </ItemGroup>
   <ItemGroup>
