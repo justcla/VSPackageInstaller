@@ -55,6 +55,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SearchProvider\SearchProvider.cs" />
+    <Compile Include="SearchProvider\SearchProviderResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SearchProviderResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="VSPackage.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -167,6 +173,10 @@
     <Content Include="Resources\VSPackage.ico" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="SearchProvider\SearchProviderResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SearchProviderResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="VSPackage.resx">
       <DependentUpon>VSPackage.cs</DependentUpon>
       <MergeWithCTO>true</MergeWithCTO>

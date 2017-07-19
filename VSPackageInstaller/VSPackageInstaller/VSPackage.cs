@@ -4,6 +4,7 @@
     using System.Diagnostics.CodeAnalysis;
     using System.Runtime.InteropServices;
     using Microsoft.VisualStudio.Shell;
+    using SP = VSPackageInstaller.SearchProvider;
 
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
@@ -26,7 +27,8 @@
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [Guid(VSPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    public sealed class VSPackage : Package
+    [ProvideSearchProvider(typeof(SP.SearchProvider), "VSPackageInstaller")]
+    public sealed class VSPackage : ExtensionPointPackage
     {
         /// <summary>
         /// VSPackage GUID string.
