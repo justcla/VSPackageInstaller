@@ -1,4 +1,4 @@
-﻿namespace VSPackageInstaller.CacheManager
+﻿namespace VSPackageInstaller.Cache
 {
     using System;
     using System.Collections.Generic;
