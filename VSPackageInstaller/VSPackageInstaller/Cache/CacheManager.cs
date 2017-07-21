@@ -5,13 +5,13 @@
     using System.Collections.Immutable;
     using System.IO;
     using System.Linq;
+    using System.Runtime.Serialization.Json;
     using System.Threading;
-    using System.Threading.Tasks;
 
-    internal sealed class CacheManager<TItem>
+    internal sealed class CacheManager<TItemView, TItem> where TItem : TItemView
     {
         // Modified cross-thread.
-        private Tuple<DateTime?, ImmutableList<TItem>> cacheSnapshot;
+        private Tuple<DateTime?, ImmutableList<TItemView>> cacheSnapshot;
 
         public CacheManager(string cacheFilePath)
         {
@@ -22,7 +22,7 @@
 
             this.CacheFilePath = Path.GetFullPath(cacheFilePath);
 
-            this.ReplaceAll(Enumerable.Empty<TItem>());
+            this.ReplaceAll(Enumerable.Empty<TItemView>());
         }
 
         public bool CacheFileExists
@@ -67,31 +67,31 @@
 
         public DateTime? LastCacheFileUpdateTimeStamp => (CacheFileExists ? File.GetLastWriteTimeUtc(this.CacheFilePath) : (DateTime?)null);
 
-        public IReadOnlyList<TItem> Snapshot => Volatile.Read(ref this.cacheSnapshot).Item2;
+        public IReadOnlyList<TItemView> Snapshot => Volatile.Read(ref this.cacheSnapshot).Item2;
 
-        public void ReplaceAll(IEnumerable<TItem> items)
+        public void ReplaceAll(IEnumerable<TItemView> items)
         {
             Volatile.Write(
                 ref this.cacheSnapshot,
-                Tuple.Create<DateTime?, ImmutableList<TItem>>(DateTime.UtcNow, ImmutableList.CreateRange<TItem>(items)));
+                Tuple.Create<DateTime?, ImmutableList<TItemView>>(DateTime.UtcNow, ImmutableList.CreateRange<TItemView>(items)));
         }
 
-        public void AddRange(IEnumerable<TItem> items)
+        public void AddRange(IEnumerable<TItemView> items)
         {
             var oldItems = Volatile.Read(ref this.cacheSnapshot).Item2;
 
             Volatile.Write(
                 ref this.cacheSnapshot,
-                Tuple.Create<DateTime?, ImmutableList<TItem>>(DateTime.UtcNow, oldItems.AddRange(items)));
+                Tuple.Create<DateTime?, ImmutableList<TItemView>>(DateTime.UtcNow, oldItems.AddRange(items)));
         }
 
-        public void AddOrUpdateRange<TEqualityKey>(IEnumerable<TItem> newOrUpdatedItems, Func<TItem, TEqualityKey> equalityKeySelector)
+        public void AddOrUpdateRange<TEqualityKey>(IEnumerable<TItemView> newOrUpdatedItems, Func<TItemView, TEqualityKey> equalityKeySelector)
         {
             var oldItems = Volatile.Read(ref this.cacheSnapshot).Item2;
 
             // Prithee not judge me for the quality of these source codes...
 
-            var updatedItemsDictionary = new Dictionary<TEqualityKey, TItem>();
+            var updatedItemsDictionary = new Dictionary<TEqualityKey, TItemView>();
 
             // Add all new and updated items to dictionary based upon their selected 'equality' property.
             foreach (var newOrUpdatedItem in newOrUpdatedItems)
@@ -99,7 +99,7 @@
                 updatedItemsDictionary.Add(equalityKeySelector(newOrUpdatedItem), newOrUpdatedItem);
             }
 
-            var mergedListBuilder = ImmutableList.CreateBuilder<TItem>();
+            var mergedListBuilder = ImmutableList.CreateBuilder<TItemView>();
 
             // Iterate through all old items and add their replacements to the new list, if one exists.
             foreach (var oldItem in oldItems)
@@ -122,22 +122,60 @@
 
             Volatile.Write(
                 ref this.cacheSnapshot,
-                Tuple.Create<DateTime?, ImmutableList<TItem>>(DateTime.UtcNow, mergedListBuilder.ToImmutable()));
+                Tuple.Create<DateTime?, ImmutableList<TItemView>>(DateTime.UtcNow, mergedListBuilder.ToImmutable()));
         }
 
-        public async Task LoadCacheFileAsync()
+        public bool TryLoadCacheFile()
         {
-            throw new NotImplementedException();
+            // TODO: can we make this method async?
+            try
+            {
+                using (var inputStream = File.OpenRead(this.CacheFilePath))
+                {
+                    var serializer = new DataContractJsonSerializer(typeof(CacheItemsCollection<TItem>));
+
+                    if (serializer.ReadObject(inputStream) is CacheItemsCollection<TItem> itemsCollection)
+                    {
+                        // TODO: this use of casting from the item to the view is quite gross.
+                        this.ReplaceAll(itemsCollection.Items.Cast<TItemView>());
+                    }
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public async Task SaveCacheFileAsync()
+        public bool TrySaveCacheFile()
         {
-            throw new NotImplementedException();
+            // TODO: can we make this method async?
+            try
+            {
+                using (var outputStream = File.OpenWrite(this.CacheFilePath))
+                {
+                    var serializer = new DataContractJsonSerializer(typeof(CacheItemsCollection<TItem>));
+
+                    // TODO: this use of casting from the item to the view is quite gross.
+                    serializer.WriteObject(outputStream, new CacheItemsCollection<TItem>(this.Snapshot.Cast<TItem>()));
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public async Task LoadIfCacheFileOlderThan(DateTime cutoffDate)
+        public void LoadIfCacheFileOlderThan(DateTime cutoffDate)
         {
-            throw new NotImplementedException();
+            if (cutoffDate > this.LastUpdateTimeStamp)
+            {
+                TryLoadCacheFile();
+            }
         }
     }
 }
