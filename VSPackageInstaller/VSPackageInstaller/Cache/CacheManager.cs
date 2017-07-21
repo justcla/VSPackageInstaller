@@ -22,7 +22,7 @@
 
             this.CacheFilePath = Path.GetFullPath(cacheFilePath);
 
-            this.Create(Enumerable.Empty<TItem>());
+            this.ReplaceAll(Enumerable.Empty<TItem>());
         }
 
         public bool CacheFileExists
@@ -69,7 +69,7 @@
 
         public IReadOnlyList<TItem> Snapshot => Volatile.Read(ref this.cacheSnapshot).Item2;
 
-        public void Create(IEnumerable<TItem> items)
+        public void ReplaceAll(IEnumerable<TItem> items)
         {
             Volatile.Write(
                 ref this.cacheSnapshot,
@@ -83,6 +83,46 @@
             Volatile.Write(
                 ref this.cacheSnapshot,
                 Tuple.Create<DateTime?, ImmutableList<TItem>>(DateTime.UtcNow, oldItems.AddRange(items)));
+        }
+
+        public void AddOrUpdateRange<TEqualityKey>(IEnumerable<TItem> newOrUpdatedItems, Func<TItem, TEqualityKey> equalityKeySelector)
+        {
+            var oldItems = Volatile.Read(ref this.cacheSnapshot).Item2;
+
+            // Prithee not judge me for the quality of these source codes...
+
+            var updatedItemsDictionary = new Dictionary<TEqualityKey, TItem>();
+
+            // Add all new and updated items to dictionary based upon their selected 'equality' property.
+            foreach (var newOrUpdatedItem in newOrUpdatedItems)
+            {
+                updatedItemsDictionary.Add(equalityKeySelector(newOrUpdatedItem), newOrUpdatedItem);
+            }
+
+            var mergedListBuilder = ImmutableList.CreateBuilder<TItem>();
+
+            // Iterate through all old items and add their replacements to the new list, if one exists.
+            foreach (var oldItem in oldItems)
+            {
+                var key = equalityKeySelector(oldItem);
+
+                if (updatedItemsDictionary.TryGetValue(key, out var updatedItem))
+                {
+                    mergedListBuilder.Add(updatedItem);
+                    updatedItemsDictionary.Remove(key);
+                }
+                else
+                {
+                    mergedListBuilder.Add(oldItem);
+                }
+            }
+
+            // Anything left in the dictionary is a new item, append it to the list.
+            mergedListBuilder.AddRange(updatedItemsDictionary.Values);
+
+            Volatile.Write(
+                ref this.cacheSnapshot,
+                Tuple.Create<DateTime?, ImmutableList<TItem>>(DateTime.UtcNow, mergedListBuilder.ToImmutable()));
         }
 
         public async Task LoadCacheFileAsync()

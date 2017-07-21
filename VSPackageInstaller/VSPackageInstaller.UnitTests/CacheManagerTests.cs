@@ -1,11 +1,12 @@
-﻿using System;
-using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using VSPackageInstaller.Cache;
-using System.Threading;
-
-namespace VSPackageInstaller.UnitTests
+﻿namespace VSPackageInstaller.UnitTests
 {
+    using System;
+    using System.IO;
+    using System.Linq;
+    using System.Threading;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using VSPackageInstaller.Cache;
+
     [TestClass]
     public class CacheManagerTests
     {
@@ -80,6 +81,10 @@ namespace VSPackageInstaller.UnitTests
             manager.AddRange(new[] { 3 });
 
             Assert.IsTrue(DateTime.UtcNow.Subtract(manager.LastUpdateTimeStamp.Value).TotalMilliseconds < 20);
+
+            File.WriteAllText(CacheFilePath, string.Empty);
+
+            Assert.IsTrue(DateTime.UtcNow.Subtract(manager.LastUpdateTimeStamp.Value).TotalMilliseconds < 20);
         }
 
         [TestMethod]
@@ -106,12 +111,38 @@ namespace VSPackageInstaller.UnitTests
             Assert.AreEqual(8, manager.Snapshot[4]);
             Assert.AreEqual(9, manager.Snapshot[5]);
 
-            manager.Create(new[] { 4, 5, 6 });
+            manager.ReplaceAll(new[] { 4, 5, 6 });
 
             Assert.AreEqual(3, manager.Snapshot.Count);
             Assert.AreEqual(4, manager.Snapshot[0]);
             Assert.AreEqual(5, manager.Snapshot[1]);
             Assert.AreEqual(6, manager.Snapshot[2]);
+        }
+
+        [TestMethod]
+        public void AddOrUpdateRange_CorrectResults()
+        {
+            var manager = new CacheManager<int>(CacheFilePath);
+
+            Assert.AreEqual(0, manager.Snapshot.Count);
+
+            manager.AddRange(new[] { 100, 101, 102 });
+
+            Assert.AreEqual(3, manager.Snapshot.Count);
+            Assert.AreEqual(100, manager.Snapshot[0]);
+            Assert.AreEqual(101, manager.Snapshot[1]);
+            Assert.AreEqual(102, manager.Snapshot[2]);
+
+            manager.AddOrUpdateRange(new[] { 203, 200, 202, 204 }, (val) => (val % 10));
+
+            Assert.AreEqual(5, manager.Snapshot.Count);
+            Assert.IsTrue(manager.Snapshot.Contains(203));
+            Assert.IsTrue(manager.Snapshot.Contains(200));
+            Assert.IsTrue(manager.Snapshot.Contains(101));
+            Assert.IsTrue(manager.Snapshot.Contains(202));
+            Assert.IsTrue(manager.Snapshot.Contains(204));
+            Assert.IsFalse(manager.Snapshot.Contains(100));
+            Assert.IsFalse(manager.Snapshot.Contains(102));
         }
     }
 }
