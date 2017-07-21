@@ -16,20 +16,20 @@
         [ExpectedException(typeof(ArgumentException))]
         public void Constructor_NullCacheFilePath()
         {
-            new CacheManager<int>(null);
+            new CacheManager<int, int>(null);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void Constructor_WhiteSpaceCacheFilePath()
         {
-            new CacheManager<int>("  ");
+            new CacheManager<int, int>("  ");
         }
 
         [TestMethod]
         public void Constructor_InitiallyEmpty()
         {
-            var manager = new CacheManager<int>(CacheFilePath);
+            var manager = new CacheManager<int, int>(CacheFilePath);
 
             Assert.IsFalse(manager.CacheFileExists);
             Assert.IsNull(manager.LastCacheFileUpdateTimeStamp);
@@ -41,7 +41,7 @@
         [TestMethod]
         public void CacheFilePath_ResolvesToFullPath()
         {
-            var manager = new CacheManager<int>("foofile");
+            var manager = new CacheManager<int, int>("foofile");
 
             Assert.IsTrue(manager.CacheFilePath.Split(Path.DirectorySeparatorChar).Length > 1);
         }
@@ -49,7 +49,7 @@
         [TestMethod]
         public void CacheFileExists_LastUpdated_CorrectResults()
         {
-            var manager = new CacheManager<int>(CacheFilePath);
+            var manager = new CacheManager<int, int>(CacheFilePath);
 
             Assert.IsFalse(File.Exists(CacheFilePath));
             Assert.IsFalse(manager.CacheFileExists);
@@ -90,7 +90,7 @@
         [TestMethod]
         public void AddRange_Create_CorrectResults()
         {
-            var manager = new CacheManager<int>(CacheFilePath);
+            var manager = new CacheManager<int, int>(CacheFilePath);
 
             Assert.AreEqual(0, manager.Snapshot.Count);
 
@@ -122,7 +122,7 @@
         [TestMethod]
         public void AddOrUpdateRange_CorrectResults()
         {
-            var manager = new CacheManager<int>(CacheFilePath);
+            var manager = new CacheManager<int, int>(CacheFilePath);
 
             Assert.AreEqual(0, manager.Snapshot.Count);
 
@@ -143,6 +143,60 @@
             Assert.IsTrue(manager.Snapshot.Contains(204));
             Assert.IsFalse(manager.Snapshot.Contains(100));
             Assert.IsFalse(manager.Snapshot.Contains(102));
+        }
+
+        [TestMethod]
+        public void Load_Save_LoadIfOlderThan_CorrectResults()
+        {
+            var manager = new CacheManager<IExtensionDataItemView, ExtensionDataItem>(CacheFilePath);
+
+            manager.AddRange(
+                new[]
+                {
+                    new ExtensionDataItem("Title1", "Description1", "Tags1", "Version1", "Author1", "Link1", "Installer1"),
+                    new ExtensionDataItem("Title2", "Description2", "Tags2", "Version2", "Author2", "Link2", "Installer2"),
+                    new ExtensionDataItem("Title3", "Description3", "Tags3", "Version3", "Author3", "Link3", "Installer3"),
+                });
+
+            // Save twice to ensure that we didn't open the file in 'append' mode.
+            Assert.IsTrue(manager.TrySaveCacheFile());
+            Assert.IsTrue(manager.TrySaveCacheFile());
+
+            Assert.IsTrue(manager.CacheFileExists);
+            Assert.IsTrue(File.Exists(CacheFilePath));
+
+            // Clear cache.
+            manager.ReplaceAll(Enumerable.Empty<ExtensionDataItem>());
+            Assert.AreEqual(0, manager.Snapshot.Count);
+
+            Assert.IsTrue(manager.TryLoadCacheFile());
+
+            // Check for proper deserialization.
+            Assert.AreEqual(3, manager.Snapshot.Count);
+
+            Assert.AreEqual("Title1", manager.Snapshot[0].Title);
+            Assert.AreEqual("Description1", manager.Snapshot[0].Description);
+            Assert.AreEqual("Tags1", manager.Snapshot[0].Tags);
+            Assert.AreEqual("Version1", manager.Snapshot[0].Version);
+            Assert.AreEqual("Author1", manager.Snapshot[0].Author);
+            Assert.AreEqual("Link1", manager.Snapshot[0].Link);
+            Assert.AreEqual("Installer1", manager.Snapshot[0].Installer);
+
+            Assert.AreEqual("Title2", manager.Snapshot[1].Title);
+            Assert.AreEqual("Description2", manager.Snapshot[1].Description);
+            Assert.AreEqual("Tags2", manager.Snapshot[1].Tags);
+            Assert.AreEqual("Version2", manager.Snapshot[1].Version);
+            Assert.AreEqual("Author2", manager.Snapshot[1].Author);
+            Assert.AreEqual("Link2", manager.Snapshot[1].Link);
+            Assert.AreEqual("Installer2", manager.Snapshot[1].Installer);
+
+            Assert.AreEqual("Title3", manager.Snapshot[2].Title);
+            Assert.AreEqual("Description3", manager.Snapshot[2].Description);
+            Assert.AreEqual("Tags3", manager.Snapshot[2].Tags);
+            Assert.AreEqual("Version3", manager.Snapshot[2].Version);
+            Assert.AreEqual("Author3", manager.Snapshot[2].Author);
+            Assert.AreEqual("Link3", manager.Snapshot[2].Link);
+            Assert.AreEqual("Installer3", manager.Snapshot[2].Installer);
         }
     }
 }
