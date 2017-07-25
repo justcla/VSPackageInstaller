@@ -6,6 +6,7 @@
     using System.Threading;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using VSPackageInstaller.Cache;
+    using VSPackageInstaller.MarketplaceService;
 
     [TestClass]
     public class CacheManagerTests
@@ -153,9 +154,33 @@
             manager.AddRange(
                 new[]
                 {
-                    new ExtensionDataItem("Title1", "Description1", "Tags1", "Version1", "Author1", "Link1", "Installer1"),
-                    new ExtensionDataItem("Title2", "Description2", "Tags2", "Version2", "Author2", "Link2", "Installer2"),
-                    new ExtensionDataItem("Title3", "Description3", "Tags3", "Version3", "Author3", "Link3", "Installer3"),
+                    new ExtensionDataItem()
+                    {
+                        Title = "Title1",
+                        Description = "Description1",
+                        Version = "Version1",
+                        Author = "Author1",
+                        Link = "Link1",
+                        Installer = "Installer1"
+                    },
+                    new ExtensionDataItem()
+                    {
+                        Title = "Title2",
+                        Description = "Description2",
+                        Version = "Version2",
+                        Author = "Author2",
+                        Link = "Link2",
+                        Installer = "Installer2"
+                    },
+                     new ExtensionDataItem()
+                    {
+                        Title = "Title3",
+                        Description = "Description3",
+                        Version = "Version3",
+                        Author = "Author3",
+                        Link = "Link3",
+                        Installer = "Installer3"
+                    }
                 });
 
             // Save twice to ensure that we didn't open the file in 'append' mode.
@@ -176,7 +201,6 @@
 
             Assert.AreEqual("Title1", manager.Snapshot[0].Title);
             Assert.AreEqual("Description1", manager.Snapshot[0].Description);
-            Assert.AreEqual("Tags1", manager.Snapshot[0].Tags);
             Assert.AreEqual("Version1", manager.Snapshot[0].Version);
             Assert.AreEqual("Author1", manager.Snapshot[0].Author);
             Assert.AreEqual("Link1", manager.Snapshot[0].Link);
@@ -184,7 +208,6 @@
 
             Assert.AreEqual("Title2", manager.Snapshot[1].Title);
             Assert.AreEqual("Description2", manager.Snapshot[1].Description);
-            Assert.AreEqual("Tags2", manager.Snapshot[1].Tags);
             Assert.AreEqual("Version2", manager.Snapshot[1].Version);
             Assert.AreEqual("Author2", manager.Snapshot[1].Author);
             Assert.AreEqual("Link2", manager.Snapshot[1].Link);
@@ -192,7 +215,6 @@
 
             Assert.AreEqual("Title3", manager.Snapshot[2].Title);
             Assert.AreEqual("Description3", manager.Snapshot[2].Description);
-            Assert.AreEqual("Tags3", manager.Snapshot[2].Tags);
             Assert.AreEqual("Version3", manager.Snapshot[2].Version);
             Assert.AreEqual("Author3", manager.Snapshot[2].Author);
             Assert.AreEqual("Link3", manager.Snapshot[2].Link);

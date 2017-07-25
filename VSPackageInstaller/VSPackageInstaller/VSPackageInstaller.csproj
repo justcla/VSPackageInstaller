@@ -57,10 +57,8 @@
   <ItemGroup>
     <Compile Include="Cache\CacheManager.cs" />
     <Compile Include="Cache\CacheItemsCollection.cs" />
-    <Compile Include="Cache\ExtensionDataItem.cs" />
-    <Compile Include="Cache\IExtensionDataItemView.cs" />
     <Compile Include="MarketplaceService\ExtensionDataItem.cs" />
-    <Compile Include="MarketplaceService\ExtensionDataItem.cs" />
+    <Compile Include="MarketplaceService\IExtensionDataItemView.cs" />
     <Compile Include="MarketplaceService\MarketplaceDataService.cs" />
     <Compile Include="MarketplaceService\PublishedExtension.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

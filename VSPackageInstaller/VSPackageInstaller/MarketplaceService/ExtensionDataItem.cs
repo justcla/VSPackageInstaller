@@ -1,25 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace VSPackageInstaller.MarketplaceService
+﻿namespace VSPackageInstaller.MarketplaceService
 {
-    internal class ExtensionDataItem
+    using System;
+    using System.Runtime.Serialization;
+
+    [DataContract]
+    internal class ExtensionDataItem : IExtensionDataItemView
     {
+        [DataMember]
         public Guid ExtensionId { get; set; }
 
+        [DataMember]
         public String Title { get; set; }
 
+        [DataMember]
         public String Description { get; set; }
 
+        [DataMember]
         public String Version { get; set; }
 
+        [DataMember]
         public String Author { get; set; }
 
+        [DataMember]
         public String Link { get; set; }
 
+        [DataMember]
         public String Installer { get; set; }
     }
 }
