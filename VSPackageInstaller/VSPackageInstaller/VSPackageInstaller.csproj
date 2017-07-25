@@ -59,8 +59,6 @@
     <Compile Include="Cache\CacheItemsCollection.cs" />
     <Compile Include="Cache\ExtensionDataItem.cs" />
     <Compile Include="Cache\IExtensionDataItemView.cs" />
-    <Compile Include="MarketplaceService\ExtensionDataItem.cs" />
-    <Compile Include="MarketplaceService\ExtensionDataItem.cs" />
     <Compile Include="MarketplaceService\MarketplaceDataService.cs" />
     <Compile Include="MarketplaceService\PublishedExtension.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -206,6 +204,9 @@
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ObjectModel\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />

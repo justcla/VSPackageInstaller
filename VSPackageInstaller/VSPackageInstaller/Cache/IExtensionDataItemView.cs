@@ -1,19 +1,21 @@
 ﻿namespace VSPackageInstaller.Cache
 {
+    using System;
+
     internal interface IExtensionDataItemView
     {
-        string Title { get; }
+        Guid ExtensionId { get; }
 
-        string Description { get;}
+        String Title { get; }
 
-        string Tags { get; }
+        String Description { get; }
 
-        string Version { get; }
+        String Version { get; }
 
-        string Author { get; }
+        String Author { get; }
 
-        string Link { get; }
+        String Link { get; }
 
-        string Installer { get; }
+        String Installer { get; }
     }
 }
