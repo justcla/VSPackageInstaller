@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
+using VSPackageInstaller.Cache;
 
 namespace VSPackageInstaller.MarketplaceService
 {

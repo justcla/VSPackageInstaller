@@ -6,7 +6,6 @@
     using System.Threading;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using VSPackageInstaller.Cache;
-    using VSPackageInstaller.MarketplaceService;
 
     [TestClass]
     public class CacheManagerTests

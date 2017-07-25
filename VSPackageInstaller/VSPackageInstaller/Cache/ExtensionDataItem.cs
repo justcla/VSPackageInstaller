@@ -1,4 +1,4 @@
-﻿namespace VSPackageInstaller.MarketplaceService
+﻿namespace VSPackageInstaller.Cache
 {
     using System;
     using System.Runtime.Serialization;
