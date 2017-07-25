@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26711.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VSPackageInstaller", "VSPackageInstaller\VSPackageInstaller.csproj", "{D0EFDADA-BE69-48F7-919C-7F53DB86E24F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VSPackageInstaller.UnitTests", "VSPackageInstaller.UnitTests\VSPackageInstaller.UnitTests.csproj", "{214927B4-5F1F-450B-B239-1371DE956630}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{D0EFDADA-BE69-48F7-919C-7F53DB86E24F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0EFDADA-BE69-48F7-919C-7F53DB86E24F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0EFDADA-BE69-48F7-919C-7F53DB86E24F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{214927B4-5F1F-450B-B239-1371DE956630}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{214927B4-5F1F-450B-B239-1371DE956630}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{214927B4-5F1F-450B-B239-1371DE956630}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{214927B4-5F1F-450B-B239-1371DE956630}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
