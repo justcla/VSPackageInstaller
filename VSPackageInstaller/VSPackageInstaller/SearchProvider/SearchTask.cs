@@ -52,56 +52,80 @@
             if (this.SearchQuery.GetTokens(MaxTokens, tokens) > 0)
             {
                 // Very lame dummy search logic:
-                if (tokens.Any(token => (token.ParsedTokenText == "hot") || (token.ParsedTokenText == "commands")))
+                try
                 {
-                    this.SearchCallback.ReportResult(
-                        this,
-                        new SearchResult(
-                            this.searchProvider,
-                            "Hot Commands",
-                            "Some commands...that are hot",
-                            null,
-                            () => MessageBox.Show("Installing hot commands...")));
-                    ++this.SearchResults;
+                    if (tokens.Any(token => (token.ParsedTokenText == "hot") || (token.ParsedTokenText == "commands")))
+                    {
+                        this.SearchCallback.ReportResult(
+                            this,
+                            new SearchResult(
+                                this.searchProvider,
+                                "Hot Commands",
+                                "Some commands...that are hot",
+                                null,
+                                () => MessageBox.Show("Installing hot commands...")));
+                        ++this.SearchResults;
+                    }
+                }
+                catch (System.NullReferenceException e)
+                {
                 }
 
-                if (tokens.Any(token => (token.ParsedTokenText == "cold") || (token.ParsedTokenText == "commands")))
+                try
                 {
-                    this.SearchCallback.ReportResult(
-                        this,
-                        new SearchResult(
-                            this.searchProvider,
-                            "Cold Commands",
-                            "Some commands...that are cold",
-                            null,
-                            () => MessageBox.Show("Installing cold commands...")));
-                    ++this.SearchResults;
+                    if (tokens.Any(token => (token.ParsedTokenText == "cold") || (token.ParsedTokenText == "commands")))
+                    {
+                        this.SearchCallback.ReportResult(
+                            this,
+                            new SearchResult(
+                                this.searchProvider,
+                                "Cold Commands",
+                                "Some commands...that are cold",
+                                null,
+                                () => MessageBox.Show("Installing cold commands...")));
+                        ++this.SearchResults;
+                    }
+                }
+                catch (System.NullReferenceException e)
+                {
                 }
 
-                if (tokens.Any(token => (token.ParsedTokenText == "easy") || (token.ParsedTokenText == "motion")))
+                try
                 {
-                    this.SearchCallback.ReportResult(
-                        this,
-                        new SearchResult(
-                            this.searchProvider,
-                            "Easy Motion",
-                            "Motion.. that is easy",
-                            null,
-                            () => MessageBox.Show("Installing easy motion...")));
-                    ++this.SearchResults;
+                    if (tokens.Any(token => (token.ParsedTokenText == "easy") || (token.ParsedTokenText == "motion")))
+                    {
+                        this.SearchCallback.ReportResult(
+                            this,
+                            new SearchResult(
+                                this.searchProvider,
+                                "Easy Motion",
+                                "Motion.. that is easy",
+                                null,
+                                () => MessageBox.Show("Installing easy motion...")));
+                        ++this.SearchResults;
+                    }
+                }
+                catch (System.NullReferenceException e)
+                {
                 }
 
-                if (tokens.Any(token => (token.ParsedTokenText == "hard") || (token.ParsedTokenText == "motion")))
+                try
                 {
-                    this.SearchCallback.ReportResult(
-                        this,
-                        new SearchResult(
-                            this.searchProvider,
-                            "Hard Motion",
-                            "Motion.. that is hard",
-                            null,
-                            () => MessageBox.Show("Installing hard motion...")));
-                    ++this.SearchResults;
+                    if (tokens.Any(token => (token.ParsedTokenText == "hard") || (token.ParsedTokenText == "motion")))
+                    {
+                        this.SearchCallback.ReportResult(
+                            this,
+                            new SearchResult(
+                                this.searchProvider,
+                                "Hard Motion",
+                                "Motion.. that is hard",
+                                null,
+                                () => MessageBox.Show("Installing hard motion...")));
+                        ++this.SearchResults;
+                    }
+                }
+                catch (System.NullReferenceException e)
+                {
                 }
             }
         }
