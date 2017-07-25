@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
+using VSPackageInstaller.Cache;
 
 namespace VSPackageInstaller.MarketplaceService
 {
@@ -35,7 +36,10 @@ namespace VSPackageInstaller.MarketplaceService
             return true;
         }
 
-        public void GetMarketplaceDataItems(String vsVersion, List<String> skus, DateTime baseTimeStamp,
+        public void GetMarketplaceDataItems(
+            String vsVersion,
+            IEnumerable<string> skus,
+            DateTime baseTimeStamp,
             Func<IEnumerable<ExtensionDataItem>, bool> callback)
         {
             bool fetchNextPage = true;
@@ -104,7 +108,7 @@ namespace VSPackageInstaller.MarketplaceService
             return extensionDataItem;;
         }
 
-        private List<PublishedExtension> GetNextPageFromMarketplace(int pageNumber, int pageSize, String vsVersion, List<String> skus)
+        private List<PublishedExtension> GetNextPageFromMarketplace(int pageNumber, int pageSize, String vsVersion, IEnumerable<string> skus)
         {
             try
             {
@@ -125,7 +129,7 @@ namespace VSPackageInstaller.MarketplaceService
             }
         }
 
-        private ExtensionQuery CreateQueryForExtensions(int pageNumber, int pageSize, List<String> skus, string vsVersion)
+        private ExtensionQuery CreateQueryForExtensions(int pageNumber, int pageSize, IEnumerable<String> skus, string vsVersion)
         {
             ExtensionQuery query = new ExtensionQuery();
             query.Filters = new List<QueryFilter>()
@@ -160,7 +164,7 @@ namespace VSPackageInstaller.MarketplaceService
                     Value = "Microsoft.VisualStudio." + sku
                 });
             }
-            return query;;
+            return query;
         }
     }
 }
