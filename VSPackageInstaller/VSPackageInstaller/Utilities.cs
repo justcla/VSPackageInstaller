@@ -18,8 +18,8 @@
             string localAppDataPath = settingsManager.GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
             return Path.Combine(
-              localAppDataPath,
-              ExtensionName);
+                localAppDataPath,
+                ExtensionName);
         }
     }
 }

@@ -7,7 +7,6 @@
     {
         private readonly IExtensionDataItemView item;
 
-        // TODO: refactor this class as needed to population with extension gallery results.
         public SearchResult(
             IVsSearchProvider searchProvider,
             IExtensionDataItemView item)

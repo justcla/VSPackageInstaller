@@ -2,13 +2,13 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using System.Windows.Forms; // TODO: For MessageBox, remove.
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
     using VSPackageInstaller.Cache;
 
     internal sealed class SearchTask : VsSearchTask
     {
+        private const int MaxSearchResults = 20;
         private readonly SearchProvider searchProvider;
 
         public SearchTask(
@@ -43,11 +43,14 @@
                 foreach (var item in this.searchProvider.CachedItems)
                 {
                     MatchItem(item, nonNullTokens);
-                }
 
-                // TODO: report incremental progress and errors.
-                // this.SearchCallback.ReportProgress(this, 10, 100);
-                // this.SetTaskStatus(VSConstants.VsSearchTaskStatus.Error);
+                    // Cap search results at 20.
+                    if (this.SearchResults >= MaxSearchResults ||
+                        (this.TaskStatus == Microsoft.VisualStudio.VSConstants.VsSearchTaskStatus.Stopped))
+                    {
+                        break;
+                    }
+                }
             }
         }
 
@@ -61,8 +64,7 @@
                 }
 
                 // TODO: less naive.
-                // TODO: cancellable.
-                if (item.Title.Contains(token.ParsedTokenText) && item.Description.Contains(token.ParsedTokenText))
+                if (item.Title.Contains(token.ParsedTokenText) || item.Description.Contains(token.ParsedTokenText))
                 {
                     this.SearchCallback.ReportResult(
                         this,

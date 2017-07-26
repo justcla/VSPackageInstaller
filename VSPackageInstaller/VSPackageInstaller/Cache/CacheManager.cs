@@ -142,7 +142,6 @@
             }
             catch
             {
-                Debug.Fail("Unable to deserialize cache file");
                 return false;
             }
         }
@@ -161,7 +160,6 @@
             }
             catch
             {
-                Debug.Fail("Unable to serialize cache file");
                 return false;
             }
         }
