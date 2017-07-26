@@ -1,5 +1,6 @@
 ﻿namespace VSPackageInstaller.SearchProvider
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Microsoft.VisualStudio.Shell;
@@ -36,13 +37,17 @@
 
             this.SearchQuery.GetTokens(MaxTokens, tokens);
 
-            var nonNullTokens = tokens.Where(t => t != null);
+            var nonNullTokens = tokens
+                .Where(t => t != null)
+                .Select(str => str.ParsedTokenText.ToLowerInvariant());
 
             if (this.SearchQuery.GetTokens(MaxTokens, tokens) > 0)
             {
+                var searchResults = new List<Tuple<int, IExtensionDataItemView>>();
+
                 foreach (var item in this.searchProvider.CachedItems)
                 {
-                    MatchItem(item, nonNullTokens);
+                    ScoreItem(searchResults, item, nonNullTokens);
 
                     // Cap search results at 20.
                     if (this.SearchResults >= MaxSearchResults ||
@@ -51,30 +56,61 @@
                         break;
                     }
                 }
+
+                // Order results by score.
+                var orderedResults = searchResults
+                    .OrderByDescending(result => result.Item1)
+                    .Select(result => result.Item2)
+                    .Select(result => new SearchResult(this.searchProvider, result));
+
+                // Report all results.
+                this.SearchCallback.ReportResults(
+                    this,
+                    (this.SearchResults = (uint)searchResults.Count),
+                    orderedResults.ToArray());
             }
 
             this.SearchCallback.ReportComplete(this, this.SearchResults);
         }
 
-        private void MatchItem(IExtensionDataItemView item, IEnumerable<IVsSearchToken> nonNullTokens)
+        private void ScoreItem(
+            IList<Tuple<int, IExtensionDataItemView>> searchResults,
+            IExtensionDataItemView item,
+            IEnumerable<string> loweredTokens)
         {
-            foreach (var token in nonNullTokens)
+            int score = 0;
+            int tokensMatched = 0;
+
+            var loweredTitle = item.Title.ToLowerInvariant();
+            var loweredDescription = item.Description.ToLowerInvariant();
+
+            foreach (var token in loweredTokens)
             {
-                if (token == null)
-                {
-                    return;
-                }
+                var titleContainsToken = loweredTitle.Contains(token);
+                var descriptionContainsToken = loweredDescription.Contains(token);
 
                 // TODO: less naive.
-                if (item.Title.Contains(token.ParsedTokenText) || item.Description.Contains(token.ParsedTokenText))
+                if (titleContainsToken || descriptionContainsToken)
                 {
-                    this.SearchCallback.ReportResult(
-                        this,
-                        new SearchResult(this.searchProvider, item));
+                    ++tokensMatched;
 
-                    ++this.SearchResults;
-                    return;
+                    // Title matches are worth twice as much.
+                    if (titleContainsToken)
+                    {
+                        score += 2;
+                    }
+
+                    if (descriptionContainsToken)
+                    {
+                        score += 1;
+                    }
                 }
+            }
+
+            // Only return items that matched all of the tokens.
+            if (tokensMatched == loweredTokens.Count())
+            {
+                searchResults.Add(Tuple.Create(score, item));
             }
         }
 
