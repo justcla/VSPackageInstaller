@@ -70,7 +70,7 @@
             {
                 Task.Run((Action)FirstTimeInitialize);
             }
-            else if (DateTime.UtcNow.Subtract(cacheManager.LastUpdateTimeStamp.Value) > TimeSpan.FromDays(1))
+            else if (DateTime.UtcNow.Subtract(cacheManager.LastCacheFileUpdateTimeStamp.Value) > TimeSpan.FromDays(1))
             {
                 // Queue a refresh if it's been longer than 24 hours.
                 Task.Run((Action)RefreshCache);
@@ -84,7 +84,7 @@
 
             // Load cached results from disk, or fallback to over the wire refresh, if stale or non-existant.
             if (!cacheManager.TryLoadCacheFile() ||
-                cacheManager.LastUpdateTimeStamp.Value > DateTime.UtcNow.Subtract(TimeSpan.FromDays(1)))
+                DateTime.UtcNow.Subtract(cacheManager.LastCacheFileUpdateTimeStamp.Value) > TimeSpan.FromDays(1))
             {
                 RefreshCache();
             }

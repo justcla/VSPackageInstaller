@@ -11,6 +11,7 @@
             IVsSearchProvider searchProvider,
             IExtensionDataItemView item)
         {
+            this.SearchProvider = searchProvider;
             this.item = item;
         }
 
