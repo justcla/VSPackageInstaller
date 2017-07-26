@@ -60,6 +60,7 @@
     <Compile Include="Cache\IExtensionDataItemView.cs" />
     <Compile Include="MarketplaceService\MarketplaceDataService.cs" />
     <Compile Include="MarketplaceService\PublishedExtension.cs" />
+    <Compile Include="MarketplaceService\VsEditionUtil.cs" />
     <Compile Include="PackageInstaller\Helpers\Logger.cs" />
     <Compile Include="PackageInstaller\Helpers\source.extension.cs" />
     <Compile Include="PackageInstaller\Helpers\Telemetry.cs" />

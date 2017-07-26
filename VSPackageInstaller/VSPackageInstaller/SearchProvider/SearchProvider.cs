@@ -103,8 +103,8 @@
             // TODO: correct SKU information.
             // TODO: incremental.
             marketPlaceService.GetMarketplaceDataItems(
-                "15.0",
-                new[] { "Pro", "Ultimate" },
+                VsEditionUtil.GetCurrentVsVersion(),
+                VsEditionUtil.GetSkusList(),
                 DateTime.MinValue,
                 (items) =>
                 {
