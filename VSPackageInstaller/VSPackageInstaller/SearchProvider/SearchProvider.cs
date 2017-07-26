@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.IO;
     using System.Runtime.InteropServices;
     using Microsoft.VisualStudio.Shell.Interop;
     using VSPackageInstaller.Cache;
@@ -12,6 +14,8 @@
     {
         private const string SearchProviderShortcut = "ext";
         private const string SearchProviderGuid = "91FA7E7E-5DE9-4776-AAB3-938BE278C2B0";
+
+        private const string CacheFileName = "cache.json";
 
         // Lazily initialized.
         private CacheManager<IExtensionDataItemView, ExtensionDataItem> cacheManager;
@@ -68,7 +72,7 @@
         {
             if (this.cacheManager == null)
             {
-                this.cacheManager = new CacheManager<IExtensionDataItemView, ExtensionDataItem>(Utilities.ExtensionAppDataPath);
+                this.cacheManager = new CacheManager<IExtensionDataItemView, ExtensionDataItem>(Path.Combine(Utilities.ExtensionAppDataPath, CacheFileName));
                 this.marketPlaceService = new MarketplaceDataService();
 
                 // Load cached results from disk, or fallback to over the wire refresh, if stale or non-existant.
@@ -109,7 +113,15 @@
                     return true;
                 });
 
-            cacheManager.TrySaveCacheFile();
+            try
+            {
+                Directory.CreateDirectory(Utilities.ExtensionAppDataPath);
+                cacheManager.TrySaveCacheFile();
+            }
+            catch
+            {
+                Debug.Fail("Failed to create local app data directory");
+            }
         }
     }
 }
