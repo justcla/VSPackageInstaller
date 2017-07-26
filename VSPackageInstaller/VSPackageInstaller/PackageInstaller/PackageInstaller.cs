@@ -7,6 +7,8 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ExtensionManager;
 using Microsoft.VisualStudio.ComponentModelHost;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace VSPackageInstaller.PackageInstaller
 {
@@ -27,15 +29,48 @@ namespace VSPackageInstaller.PackageInstaller
             Version vsVersion = VsHelpers.GetVisualStudioVersion();
 
             var registry = new RegistryKeyWrapper(VSPackageInstaller.VSPackage.thePackage.UserRegistryRoot);
-            WebEssentials.Installer installer = new WebEssentials.Installer();
 
             ExtensionEntry extensionEntry = new ExtensionEntry
             {
                 Id = _extensionId,
-                Name = _extensionName
+                Name = _extensionName,
+                MaxVersion = vsVersion,
+                MinVersion = vsVersion
             };
-            installer.InstallExtension(extensionEntry, repository, manager);
+            InstallExtension(extensionEntry, repository, manager);
         }
+        private void InstallExtension(ExtensionEntry extension, IVsExtensionRepository repository, IVsExtensionManager manager)
+        {
+            GalleryEntry entry = null;
+            try
+            {
+                Logger.Log($"{Environment.NewLine}{extension.Name}");
+                Logger.Log("  " + "Verifying ", false);
+
+                entry = repository.GetVSGalleryExtensions<GalleryEntry>(new List<string> { extension.Id }, 1033, false)?.FirstOrDefault();
+
+                if (entry != null)
+                {
+                    Logger.Log("Marketplace OK"); // Marketplace ok
+                    Logger.Log("  " + "Downloading", false);
+
+                    IInstallableExtension installable = repository.Download(entry);
+                    Logger.Log("Downloading OK"); // Download ok
+                    Logger.Log("  " + "Installing", false);
+                    manager.Install(installable, false);
+                    Logger.Log("Install OK"); // Install ok
+                }
+                else
+                {
+                    Logger.Log("Marketplace failed"); // Markedplace failed
+                }
+            }
+            catch (Exception)
+            {
+                Logger.Log("Install failed exception");
+            }
+        }
+
 
     }
 }

@@ -90,12 +90,13 @@ namespace WebEssentials
         public void InstallExtension(ExtensionEntry extension, IVsExtensionRepository repository, IVsExtensionManager manager)
         {
             GalleryEntry entry = null;
-           OnUpdate(string.Format("Installing Extension: ", extension.Name));
+            _progress = new Progress(3);
 
             try
             {
                 Logger.Log($"{Environment.NewLine}{extension.Name}");
                 Logger.Log("  " + "Verifying ", false);
+                OnUpdate(string.Format("Verifying Extension: ", extension.Name));
 
                 entry = repository.GetVSGalleryExtensions<GalleryEntry>(new List<string> { extension.Id }, 1033, false)?.FirstOrDefault();
 
@@ -103,6 +104,7 @@ namespace WebEssentials
                 {
                     Logger.Log("Marketplace OK"); // Marketplace ok
                     Logger.Log("  " + "Downloading", false);
+                    OnUpdate(string.Format("Downloading Extension: ", extension.Name));
 
                     IInstallableExtension installable = repository.Download(entry);
                     Logger.Log("Downloading OK"); // Download ok
@@ -110,6 +112,7 @@ namespace WebEssentials
                     manager.Install(installable, false);
                     Logger.Log("Install OK"); // Install ok
                     Telemetry.Install(extension.Id, true);
+                    OnUpdate(string.Format("Preparing Installation for Extension: ", extension.Name));
                 }
                 else
                 {
