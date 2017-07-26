@@ -46,7 +46,7 @@ namespace WebEssentials
         public static void PromptForRestart()
         {
             string prompt = $"Extensions have been installed. Visual Studio must be restarted for the changes to take effect.\r\rDo you want to restart Visual Studio now?";
-            int answer = VsShellUtilities.ShowMessageBox(ServiceProvider.GlobalProvider, prompt, Vsix.Name, OLEMSGICON.OLEMSGICON_QUERY, OLEMSGBUTTON.OLEMSGBUTTON_OKCANCEL, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_SECOND);
+            int answer = VsShellUtilities.ShowMessageBox(ServiceProvider.GlobalProvider, prompt, "VS Package Installer", OLEMSGICON.OLEMSGICON_QUERY, OLEMSGBUTTON.OLEMSGBUTTON_OKCANCEL, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_SECOND);
 
             if (answer == (int)MessageBoxResult.OK)
             {

@@ -25,7 +25,7 @@
 
         public void InvokeAction()
         {
-            packageInstaller.InstallPackages(item.ExtensionId.ToString(), item.Title);
+            packageInstaller.InstallPackage(item.ExtensionId.ToString(), item.Title);
         }
 
         public IVsSearchProvider SearchProvider { get; }
