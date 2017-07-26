@@ -1,36 +1,31 @@
 ﻿namespace VSPackageInstaller.SearchProvider
 {
-    using System;
     using Microsoft.VisualStudio.Shell.Interop;
+    using VSPackageInstaller.Cache;
 
     internal sealed class SearchResult : IVsSearchItemResult
     {
-        private readonly Action invokeAction;
+        private readonly IExtensionDataItemView item;
 
-        // TODO: refactor this class as needed to population with extension gallery results.
         public SearchResult(
             IVsSearchProvider searchProvider,
-            string displayText,
-            string description,
-            string tooltip,
-            Action invokeAction)
+            IExtensionDataItemView item)
         {
-            this.SearchProvider = searchProvider;
-            this.DisplayText = displayText;
-            this.Description = description;
-            this.Tooltip = tooltip;
-            this.invokeAction = invokeAction;
+            this.item = item;
         }
 
-        public void InvokeAction() => this.invokeAction.Invoke();
+        public void InvokeAction()
+        {
+            // TODO: install the extension.
+        }
 
         public IVsSearchProvider SearchProvider { get; }
 
-        public string DisplayText { get; }
+        public string DisplayText => this.item.Title;
 
-        public string Description { get; }
+        public string Description => this.item.Description;
 
-        public string Tooltip { get; }
+        public string Tooltip => this.item.Description;
 
         public IVsUIObject Icon => null;
 
