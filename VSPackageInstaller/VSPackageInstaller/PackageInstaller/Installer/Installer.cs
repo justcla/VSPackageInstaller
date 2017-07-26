@@ -13,51 +13,10 @@ namespace WebEssentials
     {
         private Progress _progress;
 
-        public Installer(LiveFeed feed, DataStore store)
+        public Installer()
         {
-            LiveFeed = feed;
-            Store = store;
         }
 
-        public DataStore Store { get; }
-
-        public LiveFeed LiveFeed { get; }
-
-        public async Task<bool> CheckForUpdatesAsync()
-        {
-            var file = new FileInfo(LiveFeed.LocalCachePath);
-            bool hasUpdates = false;
-
-            if (!file.Exists || file.LastWriteTime < DateTime.Now.AddDays(-Constants.UpdateIntervalDays))
-            {
-                hasUpdates = await LiveFeed.UpdateAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                await LiveFeed.ParseAsync().ConfigureAwait(false);
-            }
-
-            return hasUpdates;
-        }
-
-        public async System.Threading.Tasks.Task RunAsync(Version vsVersion, IVsExtensionRepository repository, IVsExtensionManager manager, CancellationToken cancellationToken)
-        {
-            IEnumerable<ExtensionEntry> toUninstall = GetExtensionsMarkedForDeletion(vsVersion);
-            IEnumerable<ExtensionEntry> toInstall = GetMissingExtensions(manager).Except(toUninstall);
-
-            int actions = toUninstall.Count() + toInstall.Count();
-
-            if (actions > 0)
-            {
-                _progress = new Progress(actions);
-
-                await UninstallAsync(toUninstall, repository, manager, cancellationToken).ConfigureAwait(false);
-                await InstallAsync(toInstall, repository, manager, cancellationToken).ConfigureAwait(false);
-
-                Logger.Log(Environment.NewLine + Resources.Text.InstallationComplete + Environment.NewLine);
-                Done?.Invoke(this, actions);
-            }
-        }
 
         private async System.Threading.Tasks.Task InstallAsync(IEnumerable<ExtensionEntry> extensions, IVsExtensionRepository repository, IVsExtensionManager manager, CancellationToken token)
         {
@@ -82,7 +41,6 @@ namespace WebEssentials
                 }
                 finally
                 {
-                    Store.Save();
                 }
             }).ConfigureAwait(false);
         }
@@ -110,25 +68,21 @@ namespace WebEssentials
                         {
                             if (manager.TryGetInstalledExtension(extension.Id, out IInstalledExtension installedExtension))
                             {
-#if !DEBUG
                                 manager.Uninstall(installedExtension);
                                 Telemetry.Uninstall(extension.Id, true);
-#endif
 
-                                Store.MarkUninstalled(extension);
                                 Logger.Log(Resources.Text.Ok);
                             }
                         }
                         catch (Exception)
                         {
-                            Logger.Log(Resources.Text.Failed);
+                            Logger.Log("Failed to uninstall");
                             Telemetry.Uninstall(extension.Id, false);
                         }
                     }
                 }
                 finally
                 {
-                    Store.Save();
                 }
             });
         }
@@ -136,62 +90,40 @@ namespace WebEssentials
         public void InstallExtension(ExtensionEntry extension, IVsExtensionRepository repository, IVsExtensionManager manager)
         {
             GalleryEntry entry = null;
-           // OnUpdate(string.Format(Resources.Text.InstallingExtension, extension.Name));
+           OnUpdate(string.Format("Installing Extension: ", extension.Name));
 
             try
             {
                 Logger.Log($"{Environment.NewLine}{extension.Name}");
-             //   Logger.Log("  " + Resources.Text.Verifying, false);
+                Logger.Log("  " + "Verifying ", false);
 
                 entry = repository.GetVSGalleryExtensions<GalleryEntry>(new List<string> { extension.Id }, 1033, false)?.FirstOrDefault();
 
                 if (entry != null)
                 {
-    //                Logger.Log(Resources.Text.Ok); // Marketplace ok
-      //              Logger.Log("  " + Resources.Text.Downloading, false);
-//#if !DEBUG
+                    Logger.Log("Marketplace OK"); // Marketplace ok
+                    Logger.Log("  " + "Downloading", false);
+
                     IInstallableExtension installable = repository.Download(entry);
-//#endif
-        //            Logger.Log(Resources.Text.Ok); // Download ok
-        //            Logger.Log("  " + Resources.Text.Installing, false);
-//#if !DEBUG
+                    Logger.Log("Downloading OK"); // Download ok
+                    Logger.Log("  " + "Installing", false);
                     manager.Install(installable, false);
-//#else
-//                   Thread.Sleep(2000);
-//#endif
-          //          Logger.Log(Resources.Text.Ok); // Install ok
+                    Logger.Log("Install OK"); // Install ok
                     Telemetry.Install(extension.Id, true);
                 }
                 else
                 {
-            //        Logger.Log(Resources.Text.Failed); // Markedplace failed
+                    Logger.Log("Marketplace failed"); // Markedplace failed
                 }
             }
             catch (Exception)
             {
-              //  Logger.Log(Resources.Text.Failed);
+                Logger.Log("Install failed exception");
                 Telemetry.Install(extension.Id, false);
             }
             finally
             {
-                if (entry != null)
-                {
-                    Store.MarkInstalled(extension);
-                }
             }
-        }
-
-        private IEnumerable<ExtensionEntry> GetMissingExtensions(IVsExtensionManager manager)
-        {
-            IEnumerable<IInstalledExtension> installed = manager.GetInstalledExtensions();
-            IEnumerable<ExtensionEntry> notInstalled = LiveFeed.Extensions.Where(ext => !installed.Any(ins => ins.Header.Identifier == ext.Id));
-
-            return notInstalled.Where(ext => !Store.HasBeenInstalled(ext.Id));
-        }
-
-        internal IEnumerable<ExtensionEntry> GetExtensionsMarkedForDeletion(Version VsVersion)
-        {
-            return LiveFeed.Extensions.Where(ext => ext.MinVersion > VsVersion || ext.MaxVersion < VsVersion);
         }
 
         private void OnUpdate(string text)
