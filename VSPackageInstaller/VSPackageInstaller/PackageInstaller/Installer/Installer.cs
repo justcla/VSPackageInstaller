@@ -149,16 +149,16 @@ namespace WebEssentials
                 {
     //                Logger.Log(Resources.Text.Ok); // Marketplace ok
       //              Logger.Log("  " + Resources.Text.Downloading, false);
-#if !DEBUG
+//#if !DEBUG
                     IInstallableExtension installable = repository.Download(entry);
-#endif
+//#endif
         //            Logger.Log(Resources.Text.Ok); // Download ok
         //            Logger.Log("  " + Resources.Text.Installing, false);
-#if !DEBUG
+//#if !DEBUG
                     manager.Install(installable, false);
-#else
-                    Thread.Sleep(2000);
-#endif
+//#else
+//                   Thread.Sleep(2000);
+//#endif
           //          Logger.Log(Resources.Text.Ok); // Install ok
                     Telemetry.Install(extension.Id, true);
                 }
