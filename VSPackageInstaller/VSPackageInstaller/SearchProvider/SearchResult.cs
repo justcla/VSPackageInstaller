@@ -14,9 +14,11 @@
             this.item = item;
         }
 
+        internal static VSPackageInstaller.PackageInstaller.PackageInstaller packageInstaller = new PackageInstaller.PackageInstaller();
+
         public void InvokeAction()
         {
-            // TODO: install the extension.
+            packageInstaller.InstallPackages(item.ExtensionId.ToString(), item.Title);
         }
 
         public IVsSearchProvider SearchProvider { get; }
