@@ -28,8 +28,6 @@
             IVsSearchQuery searchQuery,
             IVsSearchProviderCallback searchCallback)
         {
-            EnsureInitializedFireAndForget();
-
             return new SearchTask(
                 this,
                 cookie,

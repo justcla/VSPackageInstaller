@@ -52,6 +52,8 @@
                     }
                 }
             }
+
+            this.SearchCallback.ReportComplete(this, this.SearchResults);
         }
 
         private void MatchItem(IExtensionDataItemView item, IEnumerable<IVsSearchToken> nonNullTokens)
