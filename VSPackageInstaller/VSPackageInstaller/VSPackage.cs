@@ -3,6 +3,7 @@
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Runtime.InteropServices;
+    using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using SP = VSPackageInstaller.SearchProvider;
 
@@ -28,6 +29,7 @@
     [Guid(VSPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     [ProvideSearchProvider(typeof(SP.SearchProvider), "VSPackageInstaller")]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)]
     public sealed class VSPackage : ExtensionPointPackage
     {
         /// <summary>
@@ -59,6 +61,13 @@
         protected override void Initialize()
         {
             base.Initialize();
+
+            // Start process of initialization. The CacheManager instance is provided
+            // synchronously, but actual population or loading of the cache happens
+            // asynchronously in a fire and forget fashion. If the cache population is
+            // in progress at search time, we simply search the set of available results.
+            // TODO: if we drop support for VS 2015, switch to AsyncExtensionPointPackage.
+            SP.SearchProvider.EnsureInitializedFireAndForget();
         }
 
         #endregion
