@@ -4,6 +4,8 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
+    using System.Threading.Tasks;
     using System.Runtime.InteropServices;
     using Microsoft.VisualStudio.Shell.Interop;
     using VSPackageInstaller.Cache;
@@ -18,15 +20,16 @@
         private const string CacheFileName = "cache.json";
 
         // Lazily initialized.
-        private CacheManager<IExtensionDataItemView, ExtensionDataItem> cacheManager;
-        private MarketplaceDataService marketPlaceService;
+        private static CacheManager<IExtensionDataItemView, ExtensionDataItem> cacheManager;
+        private static MarketplaceDataService marketPlaceService;
 
         public IVsSearchTask CreateSearch(
             uint cookie,
             IVsSearchQuery searchQuery,
             IVsSearchProviderCallback searchCallback)
         {
-            EnsureInitialized();
+            EnsureInitializedFireAndForget();
+
             return new SearchTask(
                 this,
                 cookie,
@@ -55,44 +58,43 @@
 
         public string Shortcut => SearchProviderShortcut;
 
-        public IReadOnlyList<IExtensionDataItemView> CachedItems
+        public IEnumerable<IExtensionDataItemView> CachedItems
+            => cacheManager?.Snapshot ?? Enumerable.Empty<IExtensionDataItemView>();
+
+        // Start process of initialization. The CacheManager instance is provided
+        // synchronously, but actual population or loading of the cache happens
+        // asynchronously in a fire and forget fashion. If the cache population is
+        // in progress at search time, we simply search the set of available results.
+        // TODO: surface 'search in progress' message to users in this case.
+        public static void EnsureInitializedFireAndForget()
         {
-            get
+            if (cacheManager == null)
             {
-                if (this.cacheManager == null)
-                {
-                    throw new InvalidOperationException("Cache has not yet been initialized");
-                }
-
-                return this.cacheManager.Snapshot;
+                Task.Run((Action)FirstTimeInitialize);
             }
-        }
-
-        private void EnsureInitialized()
-        {
-            if (this.cacheManager == null)
-            {
-                this.cacheManager = new CacheManager<IExtensionDataItemView, ExtensionDataItem>(Path.Combine(Utilities.ExtensionAppDataPath, CacheFileName));
-                this.marketPlaceService = new MarketplaceDataService();
-
-                // Load cached results from disk, or fallback to over the wire refresh, if stale or non-existant.
-                if (!this.cacheManager.TryLoadCacheFile() ||
-                    this.cacheManager.LastUpdateTimeStamp.Value > DateTime.UtcNow.Subtract(TimeSpan.FromDays(1)))
-                {
-                    this.RefreshCache();
-                }
-            }
-            else if (DateTime.UtcNow.Subtract(this.cacheManager.LastUpdateTimeStamp.Value) > TimeSpan.FromDays(1))
+            else if (DateTime.UtcNow.Subtract(cacheManager.LastUpdateTimeStamp.Value) > TimeSpan.FromDays(1))
             {
                 // Queue a refresh if it's been longer than 24 hours.
-                // TODO: do this async so we don't delay the current search.
-                this.RefreshCache();
+                Task.Run((Action)RefreshCache);
             }
         }
 
-        private void RefreshCache()
+        private static void FirstTimeInitialize()
         {
-            if (this.cacheManager == null)
+            cacheManager = new CacheManager<IExtensionDataItemView, ExtensionDataItem>(Path.Combine(Utilities.ExtensionAppDataPath, CacheFileName));
+            marketPlaceService = new MarketplaceDataService();
+
+            // Load cached results from disk, or fallback to over the wire refresh, if stale or non-existant.
+            if (!cacheManager.TryLoadCacheFile() ||
+                cacheManager.LastUpdateTimeStamp.Value > DateTime.UtcNow.Subtract(TimeSpan.FromDays(1)))
+            {
+                RefreshCache();
+            }
+        }
+
+        private static void RefreshCache()
+        {
+            if (cacheManager == null)
             {
                 throw new InvalidOperationException("Cache has not yet been initialized");
             }
@@ -102,7 +104,6 @@
 
             // TODO: correct SKU information.
             // TODO: incremental.
-            // TODO: async and background.
             marketPlaceService.GetMarketplaceDataItems(
                 "15.0",
                 new[] { "Pro", "Ultimate" },

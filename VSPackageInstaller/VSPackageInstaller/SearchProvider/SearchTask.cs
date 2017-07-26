@@ -71,7 +71,6 @@
                         new SearchResult(this.searchProvider, item));
 
                     ++this.SearchResults;
-                    this.SearchCallback.ReportProgress(this, this.SearchResults, (uint)this.searchProvider.CachedItems.Count);
                     return;
                 }
             }

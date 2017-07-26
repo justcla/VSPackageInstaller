@@ -129,7 +129,6 @@
 
         public bool TryLoadCacheFile()
         {
-            // TODO: can we make this method async?
             try
             {
                 // TODO: use streams?
@@ -148,7 +147,6 @@
 
         public bool TrySaveCacheFile()
         {
-            // TODO: can we make this method async?
             try
             {
                 // TODO: use streams?
