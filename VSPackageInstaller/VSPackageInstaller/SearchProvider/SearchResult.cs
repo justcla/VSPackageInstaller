@@ -1,5 +1,6 @@
 ﻿namespace VSPackageInstaller.SearchProvider
 {
+    using System.Diagnostics;
     using Microsoft.VisualStudio.Shell.Interop;
     using VSPackageInstaller.Cache;
 
@@ -11,6 +12,11 @@
             IVsSearchProvider searchProvider,
             IExtensionDataItemView item)
         {
+            // If either of these are null, we end up with very hard to trace exceptions that
+            // in Visual Studio that don't really describe the issue. To save us future headaches..
+            Debug.Assert(searchProvider != null);
+            Debug.Assert(item != null);
+
             this.SearchProvider = searchProvider;
             this.item = item;
         }
@@ -32,7 +38,6 @@
 
         public IVsUIObject Icon => null;
 
-        // TODO: serialized version of this search result for persistent quick launch results.
-        public string PersistenceData => null;
+        public string PersistenceData => this.item.ExtensionId.ToString();
     }
 }
