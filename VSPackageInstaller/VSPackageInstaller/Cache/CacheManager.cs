@@ -1,5 +1,6 @@
 ﻿namespace VSPackageInstaller.Cache
 {
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
@@ -131,16 +132,10 @@
             // TODO: can we make this method async?
             try
             {
-                using (var inputStream = File.OpenRead(this.CacheFilePath))
+                // TODO: use streams?
+                if (JsonConvert.DeserializeObject<List<TItem>>(File.ReadAllText(this.CacheFilePath)) is List<TItem> items)
                 {
-                    var serializer = new DataContractJsonSerializer(typeof(CacheItemsCollection<TItem>));
-
-                    if (serializer.ReadObject(inputStream) is CacheItemsCollection<TItem> itemsCollection)
-                    {
-                        // TODO: this is failing for some reason.
-                        // TODO: this use of casting from the item to the view is quite gross.
-                        this.ReplaceAll(itemsCollection.Items.Cast<TItemView>());
-                    }
+                    this.ReplaceAll(items.Cast<TItemView>());
                 }
 
                 return true;
@@ -157,13 +152,10 @@
             // TODO: can we make this method async?
             try
             {
-                using (var outputStream = File.OpenRead(this.CacheFilePath))
-                {
-                    var serializer = new DataContractJsonSerializer(typeof(CacheItemsCollection<TItem>));
-
-                    // TODO: this use of casting from the item to the view is quite gross.
-                    serializer.WriteObject(outputStream, new CacheItemsCollection<TItem>(this.Snapshot.Cast<TItem>()));
-                }
+                // TODO: use streams?
+                File.WriteAllText(
+                    this.CacheFilePath,
+                    JsonConvert.SerializeObject(this.Snapshot.Cast<TItem>().ToList()));
 
                 return true;
             }
