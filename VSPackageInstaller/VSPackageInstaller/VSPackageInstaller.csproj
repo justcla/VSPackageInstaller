@@ -70,6 +70,7 @@
     </Compile>
     <Compile Include="SearchProvider\SearchResult.cs" />
     <Compile Include="SearchProvider\SearchTask.cs" />
+    <Compile Include="Utilities.cs" />
     <Compile Include="VSPackage.cs" />
   </ItemGroup>
   <ItemGroup>

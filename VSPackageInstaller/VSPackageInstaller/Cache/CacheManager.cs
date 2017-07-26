@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Runtime.Serialization.Json;
@@ -136,6 +137,7 @@
 
                     if (serializer.ReadObject(inputStream) is CacheItemsCollection<TItem> itemsCollection)
                     {
+                        // TODO: this is failing for some reason.
                         // TODO: this use of casting from the item to the view is quite gross.
                         this.ReplaceAll(itemsCollection.Items.Cast<TItemView>());
                     }
@@ -145,6 +147,7 @@
             }
             catch
             {
+                Debug.Fail("Unable to deserialize cache file");
                 return false;
             }
         }
@@ -154,7 +157,7 @@
             // TODO: can we make this method async?
             try
             {
-                using (var outputStream = File.OpenWrite(this.CacheFilePath))
+                using (var outputStream = File.OpenRead(this.CacheFilePath))
                 {
                     var serializer = new DataContractJsonSerializer(typeof(CacheItemsCollection<TItem>));
 
@@ -166,15 +169,8 @@
             }
             catch
             {
+                Debug.Fail("Unable to serialize cache file");
                 return false;
-            }
-        }
-
-        public void LoadIfCacheFileOlderThan(DateTime cutoffDate)
-        {
-            if (cutoffDate > this.LastUpdateTimeStamp)
-            {
-                TryLoadCacheFile();
             }
         }
     }
