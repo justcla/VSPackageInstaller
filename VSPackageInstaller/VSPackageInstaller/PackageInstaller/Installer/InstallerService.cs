@@ -76,7 +76,7 @@ namespace WebEssentials
             var tsc = await _package.GetServiceAsync(typeof(SVsTaskStatusCenterService)) as IVsTaskStatusCenterService;
 
             var options = default(TaskHandlerOptions);
-            options.Title = Vsix.Name;
+            options.Title = "Installing Package";
             options.DisplayTaskDetails = task => { Logger.ShowOutputWindowPane(); };
             options.ActionsAfterCompletion = CompletionActions.None;
 

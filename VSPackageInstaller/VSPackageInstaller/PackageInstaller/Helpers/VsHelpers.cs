@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows;
-using System.Windows.Threading;
+using WThreading=System.Windows.Threading;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
@@ -24,7 +24,7 @@ namespace WebEssentials
 
         private static void RaiseEvent(string commandName)
         {
-            ThreadHelper.Generic.BeginInvoke(DispatcherPriority.ApplicationIdle, () => {
+            ThreadHelper.Generic.BeginInvoke(WThreading.DispatcherPriority.ApplicationIdle, () => {
 
                 Command cmd = DTE.Commands.Item(commandName);
 
