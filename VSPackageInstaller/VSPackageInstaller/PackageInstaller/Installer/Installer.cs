@@ -136,40 +136,40 @@ namespace WebEssentials
         public void InstallExtension(ExtensionEntry extension, IVsExtensionRepository repository, IVsExtensionManager manager)
         {
             GalleryEntry entry = null;
-            OnUpdate(string.Format(Resources.Text.InstallingExtension, extension.Name));
+           // OnUpdate(string.Format(Resources.Text.InstallingExtension, extension.Name));
 
             try
             {
                 Logger.Log($"{Environment.NewLine}{extension.Name}");
-                Logger.Log("  " + Resources.Text.Verifying, false);
+             //   Logger.Log("  " + Resources.Text.Verifying, false);
 
                 entry = repository.GetVSGalleryExtensions<GalleryEntry>(new List<string> { extension.Id }, 1033, false)?.FirstOrDefault();
 
                 if (entry != null)
                 {
-                    Logger.Log(Resources.Text.Ok); // Marketplace ok
-                    Logger.Log("  " + Resources.Text.Downloading, false);
+    //                Logger.Log(Resources.Text.Ok); // Marketplace ok
+      //              Logger.Log("  " + Resources.Text.Downloading, false);
 #if !DEBUG
                     IInstallableExtension installable = repository.Download(entry);
 #endif
-                    Logger.Log(Resources.Text.Ok); // Download ok
-                    Logger.Log("  " + Resources.Text.Installing, false);
+        //            Logger.Log(Resources.Text.Ok); // Download ok
+        //            Logger.Log("  " + Resources.Text.Installing, false);
 #if !DEBUG
                     manager.Install(installable, false);
 #else
                     Thread.Sleep(2000);
 #endif
-                    Logger.Log(Resources.Text.Ok); // Install ok
+          //          Logger.Log(Resources.Text.Ok); // Install ok
                     Telemetry.Install(extension.Id, true);
                 }
                 else
                 {
-                    Logger.Log(Resources.Text.Failed); // Markedplace failed
+            //        Logger.Log(Resources.Text.Failed); // Markedplace failed
                 }
             }
             catch (Exception)
             {
-                Logger.Log(Resources.Text.Failed);
+              //  Logger.Log(Resources.Text.Failed);
                 Telemetry.Install(extension.Id, false);
             }
             finally

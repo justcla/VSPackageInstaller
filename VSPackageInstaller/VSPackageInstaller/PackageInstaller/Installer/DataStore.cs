@@ -8,8 +8,8 @@ namespace WebEssentials
 {
     public class DataStore
     {
-        private readonly string _installed = Resources.Text.Installed;
-        private readonly string _uninstalled = Resources.Text.Uninstalled;
+        private readonly string _installed = "Installed!..."; // Resources.Text.Installed;
+        private readonly string _uninstalled = "Unistalled!..."; // Resources.Text.Uninstalled;
 
         private static string _logFile;
         private IRegistryKey _key;

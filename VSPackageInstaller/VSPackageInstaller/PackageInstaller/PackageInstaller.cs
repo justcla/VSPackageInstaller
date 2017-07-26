@@ -5,6 +5,8 @@ using WebEssentials;
 using System.Threading;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ExtensionManager;
+using Microsoft.VisualStudio.ComponentModelHost;
 
 namespace VSPackageInstaller.PackageInstaller
 {
@@ -77,9 +79,26 @@ namespace VSPackageInstaller.PackageInstaller
 
         public void InstallPackages()
         {
-            IProgress<ServiceProgressData> _progress = new System.Progress<ServiceProgressData>();
+            //            IProgress<ServiceProgressData> _progress = new System.Progress<ServiceProgressData>();
+            //            var task = InitializeAsync(new CancellationToken(false), _progress);
 
-            var task = InitializeAsync(new CancellationToken(false), _progress);
+            // Waits for MEF to initialize before the extension manager is ready to use
+            var scComponentModel = VSPackageInstaller.VSPackage.GetGlobalService(typeof(SComponentModel));
+
+            var repository = VSPackageInstaller.VSPackage.GetGlobalService(typeof(SVsExtensionRepository)) as IVsExtensionRepository;
+            var manager = VSPackageInstaller.VSPackage.GetGlobalService(typeof(SVsExtensionManager)) as IVsExtensionManager;
+            Version vsVersion = VsHelpers.GetVisualStudioVersion();
+
+            var registry = new RegistryKeyWrapper(VSPackageInstaller.VSPackage.thePackage.UserRegistryRoot);
+            var store = new DataStore(registry, Constants.LogFilePath);
+            var feed = new LiveFeed(Constants.LiveFeedUrl, Constants.LiveFeedCachePath);
+
+            WebEssentials.Installer installer = new WebEssentials.Installer(feed, store);
+ 
+            ExtensionEntry extensionEntry = new ExtensionEntry();
+            extensionEntry.Id = "3b64e04c-e8de-4b97-8358-06c73a97cc68";
+            extensionEntry.Name = "ResXManager";
+            installer.InstallExtension(extensionEntry, repository, manager);
         }
 
     }
