@@ -35,6 +35,8 @@
         /// </summary>
         public const string PackageGuidString = "188410dc-7c4a-4159-886f-e24f9ae4b477";
 
+        public static VSPackage thePackage = null;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="VSPackage"/> class.
         /// </summary>
@@ -44,6 +46,8 @@
             // any Visual Studio service because at this point the package object is created but
             // not sited yet inside Visual Studio environment. The place to do all the other
             // initialization is the Initialize method.
+            System.Diagnostics.Debug.Assert(thePackage == null);
+            thePackage = this;
         }
 
         #region Package Members

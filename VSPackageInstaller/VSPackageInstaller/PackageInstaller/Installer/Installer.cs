@@ -133,7 +133,7 @@ namespace WebEssentials
             });
         }
 
-        private void InstallExtension(ExtensionEntry extension, IVsExtensionRepository repository, IVsExtensionManager manager)
+        public void InstallExtension(ExtensionEntry extension, IVsExtensionRepository repository, IVsExtensionManager manager)
         {
             GalleryEntry entry = null;
             OnUpdate(string.Format(Resources.Text.InstallingExtension, extension.Name));

@@ -49,6 +49,9 @@
 
             this.SearchQuery.GetTokens(MaxTokens, tokens);
 
+            // dummy test for package installer
+            PackageInstaller.PackageInstaller packageInstaller = new PackageInstaller.PackageInstaller();
+
             if (this.SearchQuery.GetTokens(MaxTokens, tokens) > 0)
             {
                 // Very lame dummy search logic:
@@ -63,7 +66,7 @@
                                 "Hot Commands",
                                 "Some commands...that are hot",
                                 null,
-                                () => MessageBox.Show("Installing hot commands...")));
+                                () => packageInstaller.InstallPackages()));
                         ++this.SearchResults;
                     }
                 }
