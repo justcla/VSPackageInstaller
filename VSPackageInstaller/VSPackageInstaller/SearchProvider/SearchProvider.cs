@@ -41,8 +41,25 @@
 
         public IVsSearchItemResult CreateItemResult(string lpszPersistenceData)
         {
-            // TODO: this method should be able to take a string and deserialize it into a search result.
-            // For now, we just won't have persistent results between QL sessions.
+            // Asymptotically quite slow, but the trade off here is to either
+            // 1) iterate the entire collection to find the correct entry
+            // 2) serialize/deserialize the entire single entry in a string.
+            // I'm going with 1 to avoid future issues with invalidating these
+            // results when switching languages, or when the items are updated.
+
+            try
+            {
+                var extensionIdGuid = new Guid(lpszPersistenceData);
+                var selectedItem = this.CachedItems.SingleOrDefault(cachedItem => cachedItem.ExtensionId == extensionIdGuid);
+
+                return selectedItem != null ? new SearchResult(this, selectedItem) : null;
+            }
+            catch
+            {
+                // Very odd, perhaps the serialization format changed?
+                Debug.Fail("Failed to deserialize the item persistance data");
+            }
+
             return null;
         }
 
