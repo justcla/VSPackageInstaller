@@ -97,8 +97,9 @@ namespace VSPackageInstaller.PackageInstaller
             }
             catch (Exception ex)
             {
-                Logger.Log("Install failed exception: " + ex);
-                Logger.Log("Done");
+                Logger.Log("Extension Manager installtion failed exception: " + ex);
+                Logger.Log("Trying manual downloand and install");
+                await this.ManualInstallExtensionAsync();
             }
             finally
             {
