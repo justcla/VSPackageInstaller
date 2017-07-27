@@ -86,21 +86,23 @@ namespace VSPackageInstaller.PackageInstaller
                     Logger.Log("Downloading OK"); // Download ok
                     Logger.Log("  " + "Installing");
                     manager.Install(installable, false);
-                    Logger.Log("Install OK"); // Install ok
+                    Logger.Log("Installation queued OK"); // Install ok
+                    Logger.Log("This extension package will now be automatically installed when you exist all instances of Visual Studio");
                 }
                 else
                 {
                     Logger.Log("Marketplace failed"); // Markedplace failed
+                    Logger.Log("Done");
                 }
             }
             catch (Exception ex)
             {
                 Logger.Log("Install failed exception: " + ex);
+                Logger.Log("Done");
             }
             finally
             {
                 await System.Threading.Tasks.Task.Yield();
-                Logger.Log("Done");
             }
         }
     }
