@@ -29,6 +29,7 @@
     [Guid(VSPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     [ProvideSearchProvider(typeof(SP.SearchProvider), "VSPackageInstaller")]
+    [ProvideSearchProvider(typeof(VSPackageInstaller.CommandSearchProvider.CommandSearchProvider), "CommandSearchProvider")]
     [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)]
     public sealed class VSPackage : ExtensionPointPackage
     {
