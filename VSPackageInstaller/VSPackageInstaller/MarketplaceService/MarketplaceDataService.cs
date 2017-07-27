@@ -24,7 +24,7 @@ namespace VSPackageInstaller.MarketplaceService
 
         public void GetMarketplaceData()
         {
-            GetMarketplaceDataItems("15.0", new List<string>() {"Pro", "Ultimate"}, DateTime.MinValue, TestCallback );
+            GetMarketplaceDataItems("15.0", new List<string>() {"Pro", "Enterprise"}, DateTime.MinValue, TestCallback );
         }
 
         private bool TestCallback(IEnumerable<ExtensionDataItem> extensionDataItems)
