@@ -1,41 +1,101 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using System;
-using Tasks = System.Threading.Tasks;
+using VSPackageInstaller.Cache;
+using System.Diagnostics;
 using WebEssentials;
-using System.Threading;
-using System.Runtime.InteropServices;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ExtensionManager;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.ExtensionManager;
+using System.Linq;
 
 namespace VSPackageInstaller.PackageInstaller
 {
     public sealed class PackageInstaller
     {
+        internal IExtensionDataItemView Extension { get; set; }
 
-        public const string _packageGuid = "4f2f2873-be87-4716-a4d5-3f3f047942c4";
-        public void InstallPackages(string _extensionId, string _extensionName)
+        public void InstallPackage()
         {
-            //            IProgress<ServiceProgressData> _progress = new System.Progress<ServiceProgressData>();
-            //            var task = InitializeAsync(new CancellationToken(false), _progress);
-
-            // Waits for MEF to initialize before the extension manager is ready to use
-            var scComponentModel = VSPackageInstaller.VSPackage.GetGlobalService(typeof(SComponentModel));
-
-            var repository = VSPackageInstaller.VSPackage.GetGlobalService(typeof(SVsExtensionRepository)) as IVsExtensionRepository;
-            var manager = VSPackageInstaller.VSPackage.GetGlobalService(typeof(SVsExtensionManager)) as IVsExtensionManager;
-            Version vsVersion = VsHelpers.GetVisualStudioVersion();
-
-            var registry = new RegistryKeyWrapper(VSPackageInstaller.VSPackage.thePackage.UserRegistryRoot);
-            WebEssentials.Installer installer = new WebEssentials.Installer();
-
-            ExtensionEntry extensionEntry = new ExtensionEntry
-            {
-                Id = _extensionId,
-                Name = _extensionName
-            };
-            installer.InstallExtension(extensionEntry, repository, manager);
+             System.Threading.Tasks.Task.Run(ManualInstallExtensionAsync);
         }
 
+        private async System.Threading.Tasks.Task ManualInstallExtensionAsync()
+        {
+            try
+            {
+                var fileName = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{Guid.NewGuid().ToString()}.vsix");
+                using (var webClient = new System.Net.WebClient())
+                {
+                    // TODO: a good citizen would keep a list of known temp artifacts (like this one) and delete it on next start up.
+
+                    Logger.Log("Marketplace OK"); // Marketplace ok
+                    Logger.Log("  " + "Downloading", false);
+
+                    await webClient.DownloadFileTaskAsync(this.Extension.Installer, fileName);
+
+                    Logger.Log("Downloading OK"); // Download ok
+                }
+
+
+
+                // Use the default windows file associations to invoke VSIXinstaller.exe since we don't know the path.
+
+                Logger.Log("  " + "Installing", false);
+
+                Process.Start(new ProcessStartInfo(fileName) { UseShellExecute = true });
+
+                Logger.Log("Install OK"); // Install ok
+            }
+
+            catch (Exception ex)
+            {
+
+                // TODO: perhaps we should handle specific exceptions and give custom error messages.
+
+                Logger.Log("Install failed exception:"+ ex.ToString());
+            }
+        }
+
+        private async System.Threading.Tasks.Task ExtMgrInstallExtensionAsync()
+        {
+            GalleryEntry entry = null;
+            try
+            {
+                // Waits for MEF to initialize before the extension manager is ready to use
+                var scComponentModel = VSPackageInstaller.VSPackage.GetGlobalService(typeof(SComponentModel));
+
+                IVsExtensionRepository repository = VSPackageInstaller.VSPackage.GetGlobalService(typeof(SVsExtensionRepository)) as IVsExtensionRepository;
+                IVsExtensionManager manager = VSPackageInstaller.VSPackage.GetGlobalService(typeof(SVsExtensionManager)) as IVsExtensionManager;
+
+                Logger.Log($"{Environment.NewLine}{this.Extension.Title}");
+                Logger.Log("  " + "Verifying ", false);
+
+
+                entry = repository.GetVSGalleryExtensions<GalleryEntry>(new System.Collections.Generic.List<string> { this.Extension.ExtensionId.ToString() }, 1033, false)?.FirstOrDefault();
+
+                if (entry != null)
+                {
+                    Logger.Log("Marketplace OK"); // Marketplace ok
+                    Logger.Log("  " + "Downloading", false);
+
+                    IInstallableExtension installable = repository.Download(entry);
+                    Logger.Log("Downloading OK"); // Download ok
+                    Logger.Log("  " + "Installing", false);
+                    manager.Install(installable, false);
+                    Logger.Log("Install OK"); // Install ok
+                }
+                else
+                {
+                    Logger.Log("Marketplace failed"); // Markedplace failed
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Install failed exception: " + ex);
+            }
+            finally
+            {
+                await System.Threading.Tasks.Task.Yield();
+            }
+        }
     }
 }

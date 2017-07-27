@@ -48,7 +48,7 @@ internal static class Logger
         if (_pane == null)
         {
             var guid = Guid.NewGuid();
-            _output.CreatePane(ref guid, Vsix.Name, 1, 1);
+            _output.CreatePane(ref guid, "VS Package Installer", 1, 1);
             _output.GetPane(ref guid, out _pane);
         }
 
