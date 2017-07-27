@@ -15,7 +15,8 @@ namespace VSPackageInstaller.PackageInstaller
 
         public void InstallPackage()
         {
-             System.Threading.Tasks.Task.Run(ManualInstallExtensionAsync);
+            System.Threading.Tasks.Task.Run(ManualInstallExtensionAsync);
+//            System.Threading.Tasks.Task.Run(ExtMgrInstallExtensionAsync);
         }
 
         private async System.Threading.Tasks.Task ManualInstallExtensionAsync()
@@ -70,10 +71,14 @@ namespace VSPackageInstaller.PackageInstaller
                 Logger.Log("  " + "Verifying ", false);
 
 
-                entry = repository.GetVSGalleryExtensions<GalleryEntry>(new System.Collections.Generic.List<string> { this.Extension.ExtensionId.ToString() }, 1033, false)?.FirstOrDefault();
+                entry = repository.GetVSGalleryExtensions<GalleryEntry>(new System.Collections.Generic.List<string> { this.Extension.VsixId.ToString() }, 1033, false)?.FirstOrDefault();
 
                 if (entry != null)
                 {
+                    // ensure that we update the URL if it is empty
+                    if (entry.DownloadUrl == null)
+                        entry.DownloadUrl = this.Extension.Link;
+
                     Logger.Log("Marketplace OK"); // Marketplace ok
                     Logger.Log("  " + "Downloading", false);
 
