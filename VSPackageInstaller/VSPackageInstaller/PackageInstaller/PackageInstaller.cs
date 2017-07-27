@@ -24,12 +24,17 @@ namespace VSPackageInstaller.PackageInstaller
             try
             {
                 var fileName = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{Guid.NewGuid().ToString()}.vsix");
+                if (Extension.VsixId == null)
+                {   // this is not a VsiX extension it is most probably an MSI
+
+                    fileName = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{Guid.NewGuid().ToString()}.msi");
+                }
                 using (var webClient = new System.Net.WebClient())
                 {
                     // TODO: a good citizen would keep a list of known temp artifacts (like this one) and delete it on next start up.
 
                     Logger.Log("Marketplace OK"); // Marketplace ok
-                    Logger.Log("  " + "Downloading", false);
+                    Logger.Log("  " + "Downloading");
 
                     await webClient.DownloadFileTaskAsync(this.Extension.Installer, fileName);
 
@@ -40,7 +45,7 @@ namespace VSPackageInstaller.PackageInstaller
 
                 // Use the default windows file associations to invoke VSIXinstaller.exe since we don't know the path.
 
-                Logger.Log("  " + "Installing", false);
+                Logger.Log("  " + "Installing");
 
                 Process.Start(new ProcessStartInfo(fileName) { UseShellExecute = true });
 
@@ -77,12 +82,17 @@ namespace VSPackageInstaller.PackageInstaller
                 {
                     // ensure that we update the URL if it is empty
                     if (entry.DownloadUrl == null)
+                    {
                         entry.DownloadUrl = this.Extension.Installer;
+                    }
 
                     Logger.Log("Marketplace OK"); // Marketplace ok
                     Logger.Log("  " + "Downloading");
 
                     IInstallableExtension installable = repository.Download(entry);
+                    if (installable == null)
+                        throw new Exception("This is not a VsiX");
+
                     Logger.Log("Downloading OK"); // Download ok
                     Logger.Log("  " + "Installing");
                     manager.Install(installable, false);
@@ -92,6 +102,8 @@ namespace VSPackageInstaller.PackageInstaller
                 else
                 {
                     Logger.Log("Marketplace failed"); // Markedplace failed
+                    // This is not a VsiX
+                    throw new Exception("This is not a VsiX");
                     Logger.Log("Done");
                 }
             }
