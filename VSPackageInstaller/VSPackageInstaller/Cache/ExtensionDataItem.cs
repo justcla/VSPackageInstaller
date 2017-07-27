@@ -16,6 +16,8 @@
 
         public String Link { get; set; }
 
+        public String VsixId { get; set; }
+
         public String Installer { get; set; }
     }
 }

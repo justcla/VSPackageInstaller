@@ -17,5 +17,7 @@
         String Link { get; }
 
         String Installer { get; }
+
+        String VsixId { get; }
     }
 }
