@@ -15,8 +15,8 @@ namespace VSPackageInstaller.PackageInstaller
     public sealed class PackageInstaller
     {
 
-        public const string _packageGuid = "4f2f2873-be87-4716-a4d5-3f3f047942c4";
-        public void InstallPackage(string _extensionId, string _extensionName)
+        //public const string _packageGuid = "4f2f2873-be87-4716-a4d5-3f3f047942c4";
+        public void InstallPackage(string _extensionId, string _extensionName, string _extensionURL)
         {
             //            IProgress<ServiceProgressData> _progress = new System.Progress<ServiceProgressData>();
             //            var task = InitializeAsync(new CancellationToken(false), _progress);
@@ -37,6 +37,9 @@ namespace VSPackageInstaller.PackageInstaller
                 Logger.Log($"{Environment.NewLine}{extensionName}");
                 Logger.Log("  " + "Verifying ", false);
 
+
+                //testing with hardcoded extension id
+                extensionId = "2d8aa02a-8810-421f-97b9-86efc573fea3";
                 entry = repository.GetVSGalleryExtensions<GalleryEntry>(new List<string> { extensionId }, 1033, false)?.FirstOrDefault();
 
                 if (entry != null)
