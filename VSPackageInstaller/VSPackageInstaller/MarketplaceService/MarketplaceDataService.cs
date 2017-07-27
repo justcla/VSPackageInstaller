@@ -104,6 +104,10 @@ namespace VSPackageInstaller.MarketplaceService
                 {
                     extensionDataItem.Author = keyValuePair.Value;
                 }
+                else if (keyValuePair.Key.Equals("VsixId"))
+                {
+                    extensionDataItem.VsixId = keyValuePair.Value;
+                }
             }
             return extensionDataItem;;
         }
@@ -116,7 +120,7 @@ namespace VSPackageInstaller.MarketplaceService
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, new Uri(s_extensionQueryUrl));
                 String queryJson = JsonConvert.SerializeObject(query);
                 request.Content = new StringContent(queryJson, Encoding.UTF8, "application/json");
-                request.Headers.TryAddWithoutValidation("User-Agent", "VSIDE-" + vsVersion);
+                request.Headers.TryAddWithoutValidation("User-Agent", "VSIDE-VSPackageInstaller" + vsVersion);
 
                 HttpResponseMessage response = _httpClient.SendAsync(request).Result;
                 String jsonString = response.Content.ReadAsStringAsync().Result;
