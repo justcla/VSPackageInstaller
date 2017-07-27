@@ -15,8 +15,8 @@ namespace VSPackageInstaller.PackageInstaller
 
         public void InstallPackage()
         {
-            System.Threading.Tasks.Task.Run(ManualInstallExtensionAsync);
-//            System.Threading.Tasks.Task.Run(ExtMgrInstallExtensionAsync);
+//            System.Threading.Tasks.Task.Run(ManualInstallExtensionAsync);
+            System.Threading.Tasks.Task.Run(ExtMgrInstallExtensionAsync);
         }
 
         private async System.Threading.Tasks.Task ManualInstallExtensionAsync()
@@ -77,14 +77,14 @@ namespace VSPackageInstaller.PackageInstaller
                 {
                     // ensure that we update the URL if it is empty
                     if (entry.DownloadUrl == null)
-                        entry.DownloadUrl = this.Extension.Link;
+                        entry.DownloadUrl = this.Extension.Installer;
 
                     Logger.Log("Marketplace OK"); // Marketplace ok
-                    Logger.Log("  " + "Downloading", false);
+                    Logger.Log("  " + "Downloading");
 
                     IInstallableExtension installable = repository.Download(entry);
                     Logger.Log("Downloading OK"); // Download ok
-                    Logger.Log("  " + "Installing", false);
+                    Logger.Log("  " + "Installing");
                     manager.Install(installable, false);
                     Logger.Log("Install OK"); // Install ok
                 }
@@ -100,6 +100,7 @@ namespace VSPackageInstaller.PackageInstaller
             finally
             {
                 await System.Threading.Tasks.Task.Yield();
+                Logger.Log("Done");
             }
         }
     }
