@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="VSPackageInstaller.07350b80-a5c5-4fa7-9433-96e9088d0dfd" Version="1.1" Language="en-US" Publisher="Christian Gunderman and Justin Clareburt" />
+        <Identity Id="VSPackageInstaller.07350b80-a5c5-4fa7-9433-96e9088d0dfd" Version="1.11" Language="en-US" Publisher="Christian Gunderman and Justin Clareburt" />
         <DisplayName>VSPackageInstaller</DisplayName>
         <Description xml:space="preserve">Sublime style extension gallery search</Description>
     </Metadata>

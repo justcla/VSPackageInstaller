@@ -29,27 +29,38 @@ namespace VSPackageInstaller.PackageInstaller
 
                     fileName = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{Guid.NewGuid().ToString()}.msi");
                 }
+                else
+                {   // this is a VsiX extension
+
+                    fileName = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{Guid.NewGuid().ToString()}.VsiX");
+                }
+
                 using (var webClient = new System.Net.WebClient())
                 {
                     // TODO: a good citizen would keep a list of known temp artifacts (like this one) and delete it on next start up.
 
                     Logger.Log("Marketplace OK"); // Marketplace ok
-                    Logger.Log("  " + "Downloading");
 
-                    await webClient.DownloadFileTaskAsync(this.Extension.Installer, fileName);
+                    if (this.Extension.Installer != null)
+                    {
+                        Logger.Log("  " + "Downloading");
+                        await webClient.DownloadFileTaskAsync(this.Extension.Installer, fileName);
+                        Logger.Log("Downloading OK"); // Download ok
 
-                    Logger.Log("Downloading OK"); // Download ok
+                        // Use the default windows file associations to invoke VSIXinstaller.exe or msi installer, since we don't know the path.
+                        Logger.Log("  " + "Installing");
+
+                        Process.Start(new ProcessStartInfo(fileName) { UseShellExecute = true });
+
+                        Logger.Log("Install OK"); // Install ok
+                    }
+                    else
+                    {
+                        Logger.Log("Opening download page for the user to manually download and install"); // Download ok
+                                                      // We cannot install this extension directly. Take the user to the download page.
+                        Process.Start(new ProcessStartInfo(this.Extension.Link) { UseShellExecute = true });
+                     }
                 }
-
-
-
-                // Use the default windows file associations to invoke VSIXinstaller.exe since we don't know the path.
-
-                Logger.Log("  " + "Installing");
-
-                Process.Start(new ProcessStartInfo(fileName) { UseShellExecute = true });
-
-                Logger.Log("Install OK"); // Install ok
             }
 
             catch (Exception ex)
@@ -84,7 +95,11 @@ namespace VSPackageInstaller.PackageInstaller
                     if (entry.DownloadUrl == null)
                     {
                         entry.DownloadUrl = this.Extension.Installer;
+                        throw new Exception("This is not a VsiX");
                     }
+
+                    if (entry.DownloadUrl == null)
+                        throw new Exception("This is not a VsiX");
 
                     Logger.Log("Marketplace OK"); // Marketplace ok
                     Logger.Log("  " + "Downloading");
