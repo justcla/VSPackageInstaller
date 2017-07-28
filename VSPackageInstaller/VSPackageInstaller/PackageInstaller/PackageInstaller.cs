@@ -98,9 +98,6 @@ namespace VSPackageInstaller.PackageInstaller
                         throw new Exception("This is not a VsiX");
                     }
 
-                    if (entry.DownloadUrl == null)
-                        throw new Exception("This is not a VsiX");
-
                     Logger.Log("Marketplace OK"); // Marketplace ok
                     Logger.Log("  " + "Downloading");
 
