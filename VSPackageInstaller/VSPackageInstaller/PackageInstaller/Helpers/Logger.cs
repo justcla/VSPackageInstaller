@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using WebEssentials;
+using VSPackageInstaller.PackageInstaller;
 
 internal static class Logger
 {

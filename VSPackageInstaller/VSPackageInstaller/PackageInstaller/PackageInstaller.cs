@@ -2,29 +2,50 @@
 using System;
 using VSPackageInstaller.Cache;
 using System.Diagnostics;
-using WebEssentials;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.ExtensionManager;
 using System.Linq;
+using System.Windows.Threading;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace VSPackageInstaller.PackageInstaller
 {
     public sealed class PackageInstaller
     {
-        internal IExtensionDataItemView Extension { get; set; }
+        private const string Caption = "VS Package Installer";
 
-        public void InstallPackage()
+        public void InstallPackage(IExtensionDataItemView extension)
         {
-//            System.Threading.Tasks.Task.Run(ManualInstallExtensionAsync);
-            System.Threading.Tasks.Task.Run(ExtMgrInstallExtensionAsync);
+            //System.Threading.Tasks.Task.Run(ManualInstallExtensionAsync);
+            //System.Threading.Tasks.Task.Run(ExtMgrInstallExtensionAsync);
+
+            // Confirm Installation operation
+            string text = $"Install extension: {extension.Title}";
+            var answer = VsShellUtilities.ShowMessageBox(ServiceProvider.GlobalProvider, text, Caption, OLEMSGICON.OLEMSGICON_QUERY, OLEMSGBUTTON.OLEMSGBUTTON_OKCANCEL, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+            if (answer != (int)System.Windows.MessageBoxResult.OK)
+            {
+                return;
+            }
+
+            ThreadHelper.Generic.BeginInvoke(DispatcherPriority.SystemIdle, async () =>
+            {
+                try
+                {
+                    await InstallAsync(extension);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex.Message);
+                }
+            });
         }
 
-        private async System.Threading.Tasks.Task ManualInstallExtensionAsync()
+        private async System.Threading.Tasks.Task ManualInstallExtensionAsync(IExtensionDataItemView extension)
         {
             try
             {
                 var fileName = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{Guid.NewGuid().ToString()}.vsix");
-                if (Extension.VsixId == null)
+                if (extension.VsixId == null)
                 {   // this is not a VsiX extension it is most probably an MSI
 
                     fileName = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{Guid.NewGuid().ToString()}.msi");
@@ -41,10 +62,10 @@ namespace VSPackageInstaller.PackageInstaller
 
                     Logger.Log("Marketplace OK"); // Marketplace ok
 
-                    if (this.Extension.Installer != null)
+                    if (extension.Installer != null)
                     {
                         Logger.Log("  " + "Downloading");
-                        await webClient.DownloadFileTaskAsync(this.Extension.Installer, fileName);
+                        await webClient.DownloadFileTaskAsync(extension.Installer, fileName);
                         Logger.Log("Downloading OK"); // Download ok
 
                         // Use the default windows file associations to invoke VSIXinstaller.exe or msi installer, since we don't know the path.
@@ -57,9 +78,9 @@ namespace VSPackageInstaller.PackageInstaller
                     else
                     {
                         Logger.Log("Opening download page for the user to manually download and install"); // Download ok
-                                                      // We cannot install this extension directly. Take the user to the download page.
-                        Process.Start(new ProcessStartInfo(this.Extension.Link) { UseShellExecute = true });
-                     }
+                                                                                                           // We cannot install this extension directly. Take the user to the download page.
+                        Process.Start(new ProcessStartInfo(extension.Link) { UseShellExecute = true });
+                    }
                 }
             }
 
@@ -68,11 +89,11 @@ namespace VSPackageInstaller.PackageInstaller
 
                 // TODO: perhaps we should handle specific exceptions and give custom error messages.
 
-                Logger.Log("Install failed exception:"+ ex.ToString());
+                Logger.Log("Install failed exception:" + ex.ToString());
             }
         }
 
-        private async System.Threading.Tasks.Task ExtMgrInstallExtensionAsync()
+        private async System.Threading.Tasks.Task ExtMgrInstallExtensionAsync(IExtensionDataItemView extension)
         {
             GalleryEntry entry = null;
             try
@@ -83,18 +104,18 @@ namespace VSPackageInstaller.PackageInstaller
                 IVsExtensionRepository repository = VSPackageInstaller.VSPackage.GetGlobalService(typeof(SVsExtensionRepository)) as IVsExtensionRepository;
                 IVsExtensionManager manager = VSPackageInstaller.VSPackage.GetGlobalService(typeof(SVsExtensionManager)) as IVsExtensionManager;
 
-                Logger.Log($"{Environment.NewLine}{this.Extension.Title}");
+                Logger.Log($"{Environment.NewLine}{extension.Title}");
                 Logger.Log("  " + "Verifying ", false);
 
 
-                entry = repository.GetVSGalleryExtensions<GalleryEntry>(new System.Collections.Generic.List<string> { this.Extension.VsixId.ToString() }, 1033, false)?.FirstOrDefault();
+                entry = repository.GetVSGalleryExtensions<GalleryEntry>(new System.Collections.Generic.List<string> { extension.VsixId.ToString() }, 1033, false)?.FirstOrDefault();
 
                 if (entry != null)
                 {
                     // ensure that we update the URL if it is empty
                     if (entry.DownloadUrl == null)
                     {
-                        entry.DownloadUrl = this.Extension.Installer;
+                        entry.DownloadUrl = extension.Installer;
                         throw new Exception("This is not a VsiX");
                     }
 
@@ -116,19 +137,72 @@ namespace VSPackageInstaller.PackageInstaller
                     Logger.Log("Marketplace failed"); // Markedplace failed
                     // This is not a VsiX
                     throw new Exception("This is not a VsiX");
-                    Logger.Log("Done");
+                    //Logger.Log("Done");
                 }
             }
             catch (Exception ex)
             {
                 Logger.Log("Extension Manager installtion failed exception: " + ex);
                 Logger.Log("Trying manual downloand and install");
-                await this.ManualInstallExtensionAsync();
+                //await this.ManualInstallExtensionAsync(extension);
             }
             finally
             {
                 await System.Threading.Tasks.Task.Yield();
             }
         }
+
+        private async System.Threading.Tasks.Task InstallAsync(IExtensionDataItemView extension)
+        {
+            var repository = (IVsExtensionRepository)Package.GetGlobalService(typeof(SVsExtensionRepository));
+            var manager = (IVsExtensionManager)Package.GetGlobalService(typeof(SVsExtensionManager));
+
+            await System.Threading.Tasks.Task.Run(() =>
+            {
+                InstallExtension(repository, manager, extension);
+            });
+
+        }
+
+        private void InstallExtension(IVsExtensionRepository repository, IVsExtensionManager manager, IExtensionDataItemView extension)
+        {
+            GalleryEntry entry = null;
+            try
+            {
+                entry = repository.CreateQuery<GalleryEntry>(includeTypeInQuery: false, includeSkuInQuery: true, searchSource: "VSPackageInstaller-Install")
+                                                                                 .Where(e => e.VsixID == extension.VsixId)
+                                                                                 .AsEnumerable().FirstOrDefault();
+                if (entry != null)
+                {
+                    var installable = repository.Download(entry);
+                    manager.Install(installable, false);
+                    // Success! Offer restart operation
+                    PromptForRestart(extension.Title);
+                }
+                else
+                {
+                    string text = $"Unable to fetch extension from Marketplace: {extension.Title}";
+                    VsShellUtilities.ShowMessageBox(ServiceProvider.GlobalProvider, text, Caption, OLEMSGICON.OLEMSGICON_CRITICAL, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex.Message);
+                string text = $"Failed to install extension: {extension.Title}\n\nError: {ex.Message}";
+                VsShellUtilities.ShowMessageBox(ServiceProvider.GlobalProvider, text, Caption, OLEMSGICON.OLEMSGICON_CRITICAL, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+            }
+        }
+
+        private static void PromptForRestart(string extensionTitle)
+        {
+            string prompt = $"Successfully installed extension: {extensionTitle}\r\rChanges will take effect next time Visual Studio is started.\rDo you want to restart Visual Studio now?";
+            int answer = VsShellUtilities.ShowMessageBox(ServiceProvider.GlobalProvider, prompt, Caption, OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OKCANCEL, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_SECOND);
+            if (answer == (int)System.Windows.MessageBoxResult.OK)
+            {
+                IVsShell4 shell = (IVsShell4)Package.GetGlobalService(typeof(SVsShell));
+                shell.Restart((uint)__VSRESTARTTYPE.RESTART_Normal);
+            }
+        }
+
     }
 }

@@ -2,7 +2,7 @@
 {
     using System;
 
-    internal interface IExtensionDataItemView
+    public interface IExtensionDataItemView
     {
         Guid ExtensionId { get; }
 
